@@ -1,5 +1,5 @@
 library(ggplot2)
-library(nlr,lib.loc = "./ABM/Gillespie_SEmInR/Rlibrary/lib/")
+library(nlr,lib.loc = "./ABM/Rlibrary/lib/")
 
 source('SIR_nlr_ABM.R')
 source('nlr_utils.R')

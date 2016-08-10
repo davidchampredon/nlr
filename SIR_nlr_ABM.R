@@ -4,7 +4,7 @@ library(snowfall)
 run_MC_ABM <- function(params, simulParams, nMC, nCPU, timebucket=5) {
 	
 	sfInit(parallel = TRUE, cpu = nCPU)
-	sfLibrary(nlr,lib.loc = "./ABM/Gillespie_SEmInR/Rlibrary/lib/")
+	sfLibrary(nlr,lib.loc = "./ABM/Rlibrary/lib/")
 	
 	snow.wrap <- function(i) {
 		simulParams[['seed']] <- 123 + i

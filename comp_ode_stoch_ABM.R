@@ -3,7 +3,7 @@ source('SIR_nlr_ODE.R')
 source('SIR_nlr_stoch.R')
 source('SIR_nlr_ABM.R')
 
-library(nlr,lib.loc = "./ABM/Gillespie_SEmInR/Rlibrary/lib/")
+library(nlr,lib.loc = "./ABM/Rlibrary/lib/")
 
 save.to.file <- TRUE
 
