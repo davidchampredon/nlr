@@ -1,2 +1,6 @@
 
 *.pdf
+*.gz
+ABM/Rlibrary/lib/*
+ABM/Rlibrary/nlr/*
+ABM/Rlibrary/nlr.Rcheck/*
