@@ -1,0 +1,10 @@
+rm -rf nlr*
+rm -rf ./lib
+Rscript setup_library.R
+cp Makevars nlr/src
+R CMD build nlr
+R CMD check nlr
+mkdir ./lib
+R CMD INSTALL -l ./lib nlr
+echo --------------------------------------------------------
+echo run "Rscript test_nlr_library.R" to check all went well
