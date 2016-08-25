@@ -6,6 +6,7 @@
 ##################################################################
 
 library(ggplot2)
+library(profvis)
 
 library(nlr,lib.loc = "./lib")
 
@@ -26,6 +27,7 @@ simulParams <- list(horizon = 299.9,
 					doExact = FALSE,
 					timeStepTauLeap = 0.1)
 
+
 res <- run_SEIR_nlc(params, simulParams)
 
 t <- res[['ts_time']]
@@ -35,10 +37,12 @@ par(mfrow=c(2,1))
 plot(t,prev, typ='s',log='y')
 plot(t,S, typ='s')
 
-# gi <- res[['gi_bck_val']]
-# gi.t <- res[['gi_bck_times']]
-# 
-# gi.t <- gi.t[gi>0]
-# gi <- gi[gi>0]
-# plot(gi.t,gi)
-# hist(gi)
+gi <- res[['gi_bck_val']]
+gi.t <- res[['gi_bck_times']]
+
+gi.t <- gi.t[gi>0]
+gi <- gi[gi>0]
+plot(gi.t,gi)
+hist(gi, breaks = 0:(max(gi)+1))
+
+summary(gi)

@@ -2,10 +2,10 @@
 source('SIR_nlr_ODE.R')
 source('SIR_nlr_stoch.R')
 source('SIR_nlr_ABM.R')
+libpath <- "./ABM/Rlibrary/lib/"
+library(nlr,lib.loc = libpath)
 
-library(nlr,lib.loc = "./ABM/Rlibrary/lib/")
-
-save.to.file <- TRUE
+save.to.file <- F#TRUE
 
 ### ==== Shared parameters ====
 
@@ -94,8 +94,10 @@ sim.stoch <- res.stoch[['sim.mean']]
 
 ### ==== ABM simulations ====
 
-sim.abm <- run_MC_ABM(params, simulParams, nMC = n.MC, 
-					  nCPU = 3)
+sim.abm <- run_MC_ABM(params, simulParams, 
+					  nMC = n.MC, 
+					  nCPU = 3, 
+					  libpath = libpath)
 time.abm <- sim.abm[['ts']]$t / 365
 prev.abm <- sim.abm[['ts']]$prev.mean
 
