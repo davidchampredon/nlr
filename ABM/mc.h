@@ -14,7 +14,7 @@
 
 void MC_run(simulator& S, unsigned long iter_mc,
 			double horizon, unsigned long initInfectious,
-			int jobnum, string param_set,
+			int jobnum,
 			bool calc_WIW_Re,
 			bool doExact, double timeStepTauLeap);
 
@@ -26,7 +26,7 @@ void MC_run__OLD(simulator S, unsigned long iter_mc,
 
 void MC_run_exact(simulator& S, unsigned long iter_mc,
 				  double horizon, unsigned long initInfectious,
-				  int jobnum, string param_set,
+				  int jobnum,
 				  bool calc_WIW_Re);
 
 
@@ -36,7 +36,6 @@ void MC_run_tauLeap(simulator& S,
 					double timeStep,
 					unsigned long initInfectious,
 					int jobnum,
-					string param_set,
 					bool calc_WIW_Re);
 
 

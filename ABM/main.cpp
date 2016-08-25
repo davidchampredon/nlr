@@ -27,26 +27,24 @@ int main(int argc, const char * argv[]) {
 	
 	// Read the job number
     int jobnum = 0; //atoi(argv[1]);
-    string fileparam = "param_1.csv"; //argv[2];
 	
-	// Read main simulation parameters from file
 	
-
+	// main simulation parameters:
 	
-	double horizon			= getParameterFromFile("horizon", fileparam);
-    unsigned long popSize	= 1000; //getParameterFromFile("popSize", fileparam);
-	double R0				= getParameterFromFile("R0", fileparam);;
-	double latent_mean		= getParameterFromFile("latent_mean", fileparam);;
-	double infectious_mean	= getParameterFromFile("infectious_mean", fileparam);;
-    int nE					= 0; //getParameterFromFile("nE", fileparam);
-	int nI					= getParameterFromFile("nI", fileparam);
-	unsigned long mc_iter	= getParameterFromFile("mc_iter", fileparam);
-	int njobs				= getParameterFromFile("njobs", fileparam);
+	double horizon			= 360;
+    unsigned long popSize	= 1000;
+	double R0				= 1.1;
+	double latent_mean		= 2.345;
+	double infectious_mean	= 3.789;
+    int nE					= 0;
+	int nI					= 1;
+	unsigned long mc_iter	= 1;
+	int njobs				= 1;
 	
-	unsigned long initInfectious	= getParameterFromFile("init_I1", fileparam);
-    bool calc_WIW_Re				= getParameterFromFile("calc_WIW_Re", fileparam);
-    bool doExact					= 0; //getParameterFromFile("doExact", fileparam);
-	double timeStepTauLeap			= getParameterFromFile("timeStepTauLeap", fileparam);
+	unsigned long initInfectious	= 3;
+	bool calc_WIW_Re				= false;
+    bool doExact					= 0;
+	double timeStepTauLeap			= 0.2;
 	
 	int mc_job = int(mc_iter/njobs);
 	
@@ -59,8 +57,8 @@ int main(int argc, const char * argv[]) {
 	
 	vector<double> sigma(nE);
 	vector<double> gamma(nI);
-	for (int i=0; i<nE; i++) sigma[i]=sigma0*nE;
-	for (int i=0; i<nI; i++) gamma[i]=gamma0*nI;
+	for (int i=0; i<nE; i++) sigma[i] = sigma0*nE;
+	for (int i=0; i<nI; i++) gamma[i] = gamma0*nI;
 	
 	// Simulation
 	
@@ -71,7 +69,7 @@ int main(int argc, const char * argv[]) {
     SIM.set_Kfct_prm(kprm);
     
 	MC_run(SIM, mc_job, horizon,initInfectious,
-		   jobnum,fileparam,calc_WIW_Re,
+		   jobnum,calc_WIW_Re,
 		   doExact,timeStepTauLeap);
 	
     SIM.displayInfo();
@@ -79,10 +77,15 @@ int main(int argc, const char * argv[]) {
 	cout<<endl<<"--- Job #"<<jobnum<<" finished!"<<endl;
 	
 	
-    vector< vector<double> > gi = SIM.get_GIbck();
-    
-    displayVector(gi[1]);
-    
+//    vector< vector<double> > gi = SIM.get_GIbck();
+//    displayVector(gi[1]);
+//    
+//    vector< vector<double> > infdur = SIM.get_infectiousDuration();
+//    displayVector(infdur[0]);
+//    displayVector(infdur[1]);
+//    
+    vector<unsigned long> prev = SIM.get_prevalence();
+    displayVector(prev);
     
 	// --------------------------------------------------------------
 	// COMPUTER TIME MONITORING - do not delete!

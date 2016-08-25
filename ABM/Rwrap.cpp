@@ -46,7 +46,7 @@ List dcDataFrameToRcppList(dcDataFrame df,
 
 
 // [[Rcpp::export]]
-List run_SEIR_nlc(List params, List simulParams){
+List run_SEIR_nlr(List params, List simulParams){
 	/// This runs a SEIR model implemented
 	/// in this agent-based model.
 	/// The goal is to compare its output to an ODE model.
@@ -78,8 +78,6 @@ List run_SEIR_nlc(List params, List simulParams){
 	
 	// parameter to get rid of (?)
 	int jobnum = seed;
-	string fileparam = "";
-	
 	
 	// Derive other variables
 	double sigma0	= 1.0 / latent_mean;
@@ -104,31 +102,28 @@ List run_SEIR_nlc(List params, List simulParams){
 	
 	MC_run(SIM, 1, horizon,
 		   initInfectious,
-		   jobnum, fileparam, calc_WIW_Re,
+		   jobnum, calc_WIW_Re,
 		   doExact, timeStepTauLeap);
 
 	SIM.displayInfo();
 	
 	// Retrieve all results from simulation:
 	
-	vector< vector<double> > gi = SIM.get_GIbck();
-	vector<unsigned long> prev = SIM.get_prevalence();
-	vector<unsigned long> nS = SIM.get_nS();
-	vector<unsigned long> nR = SIM.get_nR();
-	
-	// populations:
-//	dcDataFrame pop_final = sim.get_world()[0].export_dcDataFrame();
-	// epidemic time series
-//	dcDataFrame ts = sim.timeseries();
-
+	vector< vector<double> > gi     = SIM.get_GIbck();
+	vector< vector<double> > infdur = SIM.get_infectiousDuration();
+	vector<unsigned long> prev      = SIM.get_prevalence();
+	vector<unsigned long> nS        = SIM.get_nS();
+	vector<unsigned long> nR        = SIM.get_nR();
 	
 	// Return R-formatted result:
-	return List::create(Named("gi_bck_times") = gi[0],
-						Named("gi_bck_val") = gi[1],
-						Named("ts_time") = SIM.get_time(),
+	return List::create(Named("gi_bck_times")  = gi[0],
+						Named("gi_bck_val")    = gi[1],
+						Named("infdur_times")  = infdur[0],
+						Named("infdur_val")    = infdur[1],
+						Named("ts_time")       = SIM.get_time(),
 						Named("ts_prevalence") = prev,
-						Named("ts_S") = nS,
-						Named("ts_R") = nR
+						Named("ts_S")          = nS,
+						Named("ts_R")          = nR
 						);
 }
 

@@ -61,18 +61,6 @@ class simulator
 	vector<double>		_WIW_times;
 	
 	
-
-	void			set_GIbck(unsigned long IDindiv, double gi);
-	void			set_GIfwd(unsigned long IDindiv, double gi);
-	
-	void			set_infectiousStatus(unsigned long IDindiv, unsigned int s);
-	void			set_infectorID(unsigned long IDinfectee, unsigned long IDinfector);
-	
-	void			set_timeDiseaseAcquisition(unsigned long IDinfectee, double t);
-	void			set_timeDiseaseTransmit(unsigned long IDinfector, double t);
-	
-	void			calc_WIW(double t);
-	void			calc_Reff();
 	
 	// Simulation functions:
 	void			initialize(unsigned long initInfectious);
@@ -99,6 +87,27 @@ public:
 			  int nE, int nI);
 	
 	
+	// ===== SET FUNCTIONS =====
+	
+	void			set_Kfct(string x)             {_Kfct = x;}
+	void			set_Kfct_prm(vector<double> x) {_Kfct_prm = x;}
+	
+	void			set_GIbck(unsigned long IDindiv, double gi);
+	void			set_GIfwd(unsigned long IDindiv, double gi);
+	
+	void			set_infectiousStatus(unsigned long IDindiv, unsigned int s);
+	void			set_infectorID(unsigned long IDinfectee, unsigned long IDinfector);
+	
+	void			set_timeDiseaseAcquisition(unsigned long IDinfectee, double t);
+	void			set_timeDiseaseTransmit(unsigned long IDinfector, double t);
+	
+	void			set_timeInfectiousnessStart(unsigned long IDinfector, double t);
+	void			set_timeInfectiousnessEnd(unsigned long IDinfector, double t);
+	void			set_infectiousDuration(unsigned long IDinfectious);
+	
+	void			calc_WIW(double t);
+	void			calc_Reff();
+
 	
 	// ===== GET FUNCTIONS =====
 	
@@ -111,10 +120,7 @@ public:
 	vector<double>			get_time(){return _time;}
 	
 
-	// ===== SET FUNCTIONS =====
 	
-	void			set_Kfct(string x) {_Kfct = x;}
-	void			set_Kfct_prm(vector<double> x) {_Kfct_prm = x;}
 	
 	// ===== Simulation FUNCTIONS =====
 	
@@ -145,6 +151,7 @@ public:
 	// ===== OTHER FUNCTIONS =====
 	
 	vector< vector<double> > get_GIbck();
+	vector< vector<double> > get_infectiousDuration();
 	
 	unsigned long	census_status(unsigned int a, unsigned int b); // counts individuals b/w infectious status a and b
 	unsigned long	census_status(unsigned int a); // counts individuals of infectious status a

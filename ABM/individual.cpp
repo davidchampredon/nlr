@@ -11,14 +11,20 @@
 
 void individual::create()
 {
+	double undefined_double = -999.999;
+	
 	_maxInfectiousStatus	= 99999;
 	_infectiousStatus		= 0;	// susceptible by default
 	_timeDiseaseAcquisition	= 9E9;	// very large time means not infected yet
 	
 	_infectorID				= 0;
 	
-	_GIbck					= -999.999;
+	_GIbck					= undefined_double;
 	_GIfwd.resize(0);
+	
+	_timeInfectiousnessStart = undefined_double;
+	_timeInfectiousnessEnd   = undefined_double;
+	_infectiousDuration		 = undefined_double;
 }
 
 

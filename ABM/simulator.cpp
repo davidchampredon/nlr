@@ -42,8 +42,8 @@ void simulator::displayInfo()
 	
 	cout << "Population size: "<<_indiv.size()<<endl;
 	
-	cout << "# E compartments:" << _nE <<endl;
-	cout << "# I compartments:" << _nI <<endl;
+	cout << "# E compartments: " << _nE <<endl;
+	cout << "# I compartments: " << _nI <<endl;
 	
 	cout << "sigma rates:"; displayVector(_sigma);
 	cout << "gamma rates:"; displayVector(_gamma);
@@ -305,21 +305,11 @@ void simulator::actionOnEvent(unsigned int eventType, double time_event){
 	
 	/// Performs updates on individuals given an event type
 	
-	// Event is NOT an new infection
-	if(eventType>0){
-		// retrieve all the relevant IDs
-		vector<unsigned long> x = census_ID(eventType);
-		
-		if(x.size()>0){
-			// Pick one randomly
-			unsigned long ID_selected = extractElementRandom(x);
-			// Move this individual to the next stage
-			_indiv[ID_selected].incrementStatus();
-		}
-	}
+
 	
 	// Event is an new infection
-	if(eventType==0 && _count_S>0){
+	if(eventType==0 && _count_S>0)
+	{
 		// retrieve all the susceptible IDs
 		vector<unsigned long> x = census_ID(0);
 		
@@ -347,20 +337,55 @@ void simulator::actionOnEvent(unsigned int eventType, double time_event){
 		double gi = time_event - get_timeDiseaseAcquisition(ID_infector);
 		set_GIbck(ID_infectee, gi);
 		set_GIfwd(ID_infector, gi);
+		
+        
+        if(_nE==0 && _nI>0){ // <-- if no E stage, then becomes infectious at infection time.
+            // Record the time this individual becomes infectious:
+            set_timeInfectiousnessStart(ID_infectee, time_event);
+            // keep track of the counts:
+            _count_I++;
+        }
+        
+		// keep track of S counts:
+		_count_S--;
 	}
 	
 	
-	// -- Keep track of S and I counts --
-	// transmission:
-	if(eventType==0 && _count_S>0) _count_S--;
-	
-	// from last E to I[1]:
-	if(eventType==_nE) _count_I++;
-	
-	// from last I to R
-	if(eventType==(_nE+_nI) && _count_I>0){
-		_count_I--;
-		_count_R++;
+	// Event is NOT a new infection
+	if(eventType>0)
+	{
+		// retrieve all the relevant IDs
+		vector<unsigned long> x = census_ID(eventType);
+		
+		if(x.size()>0){
+			// Pick one randomly
+			unsigned long ID_selected = extractElementRandom(x);
+			// Move this individual to the next stage
+			_indiv[ID_selected].incrementStatus();
+			
+			// From last E to I[1],
+			// Individual start to be infectious.
+			if( eventType == _nE && _nE>0 )  
+			{
+				// Record the time this individual becomes infectious:
+				set_timeInfectiousnessStart(ID_selected, time_event);
+				
+				// keep track of the counts:
+				_count_I++;
+			}
+			
+			// From last I to R,
+			// individual stops being infectious.
+			if(eventType == (_nE+_nI) && _count_I>0)
+			{
+				// Record the time this individual stops being infectious:
+				set_timeInfectiousnessEnd(ID_selected, time_event);
+				set_infectiousDuration(ID_selected);
+				
+				_count_I--;
+				_count_R++;
+			}
+		}
 	}
 }
 
@@ -375,7 +400,7 @@ void simulator::run(double horizon,
 	/// Run a simulation
 	/// either 'exact' Gillespie, or approximation with 'tau leap'
 	
-	if(doExact) run_exact(horizon, initInfectious, calc_WIW_Re);
+	if(doExact)  run_exact(horizon, initInfectious, calc_WIW_Re);
 	if(!doExact) run_tauLeap(horizon, timeStep, initInfectious, calc_WIW_Re);
 }
 
@@ -473,6 +498,8 @@ void simulator::run_tauLeap(double horizon,
 
 		// update prevalence time series
 		_prevalence.push_back(_count_I);
+        
+//        cout << " DEBUG:: "<<_count_I <<   endl;
 	
 		// update susceptible counts time series
 		_nS.push_back(_count_S);
@@ -914,6 +941,38 @@ void simulator::set_timeDiseaseTransmit(unsigned long IDinfector, double t)
 }
 
 
+void simulator::set_timeInfectiousnessStart(unsigned long IDinfectious, double t){
+	
+	for(int i=0; i<_popSize; i++){
+		if(_indiv[i].get_ID() == IDinfectious){
+			_indiv[i].set_timeInfectiousnessStart(t);
+			break;
+		}
+	}
+}
+
+void simulator::set_timeInfectiousnessEnd(unsigned long IDinfectious, double t){
+	
+	for(int i=0; i<_popSize; i++){
+		if(_indiv[i].get_ID() == IDinfectious){
+			_indiv[i].set_timeInfectiousnessEnd(t);
+			break;
+		}
+	}
+}
+
+
+void simulator::set_infectiousDuration(unsigned long IDinfectious){
+	
+	for(int i=0; i<_popSize; i++){
+		if(_indiv[i].get_ID() == IDinfectious){
+			double x = _indiv[i].get_timeInfectiousnessEnd() - _indiv[i].get_timeInfectiousnessStart();
+			_indiv[i].set_infectiousDuration(x);
+			break;
+		}
+	}
+}
+
 
 vector<unsigned long> simulator::census()
 {
@@ -968,8 +1027,8 @@ void simulator::save_GIbck(string filename){
 
 
 vector< vector<double> > simulator::get_GIbck(){
-	/// Save the temporal evolution of
-	/// backward GI to a file
+	/// Return the temporal evolution of
+	/// backward GI
 	
 	vector<double> t;
 	vector<double> gibck;
@@ -985,7 +1044,23 @@ vector< vector<double> > simulator::get_GIbck(){
 }
 
 
+vector< vector<double> > simulator::get_infectiousDuration(){
+	/// Return the temporal evolution of
+	/// infectious duration
+	
+	vector<double> t;
+	vector<double> infdur;
+	
+	for (int i=0; i<_popSize;  i++) {
+		t.push_back(_indiv[i].get_timeInfectiousnessStart());
+		infdur.push_back(_indiv[i].get_infectiousDuration());
+	}
+	vector< vector<double> > res;
+	res.push_back(t);
+	res.push_back(infdur);
+	return res;
 
+}
 
 void simulator::save_GIfwd(string filename){
 	/// Save the temporal evolution of

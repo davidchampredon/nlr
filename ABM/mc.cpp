@@ -14,7 +14,6 @@ void MC_run(simulator& S,
 			double horizon,
 			unsigned long initInfectious,
 			int jobnum,
-			string param_set,
 			bool calc_WIW_Re,
 			bool doExact,
 			double timeStepTauLeap)
@@ -22,8 +21,8 @@ void MC_run(simulator& S,
 	/// Run several iterations of the simulations (Monte Carlo)
 	/// Can use either the exact Gillespie algo, or tau leap approximation
 	
-	if (doExact) MC_run_exact(S, iter_mc, horizon, initInfectious, jobnum, param_set, calc_WIW_Re);
-	if (!doExact)MC_run_tauLeap(S, iter_mc, horizon, timeStepTauLeap, initInfectious, jobnum, param_set, calc_WIW_Re);
+	if (doExact) MC_run_exact(S, iter_mc, horizon, initInfectious, jobnum, calc_WIW_Re);
+	if (!doExact)MC_run_tauLeap(S, iter_mc, horizon, timeStepTauLeap, initInfectious, jobnum, calc_WIW_Re);
 }
 
 
@@ -32,7 +31,7 @@ void MC_run(simulator& S,
 
 void MC_run_exact(simulator& S, unsigned long iter_mc,
 				  double horizon, unsigned long initInfectious,
-				  int jobnum, string param_set,
+				  int jobnum,
 				  bool calc_WIW_Re)
 {
 	// Forces the seed to be different for each job
@@ -45,10 +44,7 @@ void MC_run_exact(simulator& S, unsigned long iter_mc,
 	for(unsigned long i=0; i<iter_mc; i++)
 	{
 		cout<<endl<<"MC "<<i+1<<"/"<<iter_mc<< " (exact)"<<endl;
-		
 		S.run_exact(horizon,initInfectious,calc_WIW_Re);
-		save_all_outputs(S, param_set, jobnum, iter_mc, i);
-		S.displayInfo();
 		// counts the number of fizzles
 		if (S.get_cumIncidence()[S.get_cumIncidence().size()-1] < S.get_popSize()/20) cnt++;
 	}
@@ -60,7 +56,7 @@ void MC_run_exact(simulator& S, unsigned long iter_mc,
 void MC_run_tauLeap(simulator& S, unsigned long iter_mc,
 					double horizon, double timeStep,
 					unsigned long initInfectious,
-					int jobnum, string param_set,
+					int jobnum,
 					bool calc_WIW_Re)
 {
 	// Forces the seed to be different for each job
