@@ -343,7 +343,7 @@ void vectorFromCSVfile_string(vector<string>& res, const char * theFileName, int
 	res = x;
 }
 
-void MatrixFromCSVfile(Matrix& M,string filename, int ncol)
+void MatrixFromCSVfile(Matrix& M,string filename, unsigned long ncol)
 {
 	/// CONSTRUCT A MATRIX BY READING
 	/// COLUMN VECTORS IN A CSV FILE
@@ -398,7 +398,7 @@ double getParameterFromFile(string paramName, string fileName)
 			
 			// Find the position of the comma
 			// (delimits the name from its value)
-			int pos = line.find(",");
+			unsigned long pos = line.find(",");
 			
 			// Actual name read on this current line
 			string currentName = line.substr(0, pos);
@@ -460,7 +460,7 @@ string getParameterFromFile_string(string paramName, string fileName)
 			
 			// Find the position of the comma
 			// (delimits the name from its value)
-			int pos = line.find(",");
+			unsigned long pos = line.find(",");
 			
 			// Actual name read on this current line
 			string currentName = line.substr(0, pos);
@@ -705,7 +705,7 @@ double distanceLvector(int power, vector<double> x,vector<double> y )
 	// Calculates the L-n distance between 2 vectors
 	
 	
-	int n=x.size();
+	unsigned long n=x.size();
 	assert(n == y.size());
 	
 	double res=0.0;
@@ -725,7 +725,7 @@ double distanceLvector(int power, vector<double> x,vector<double> y, int firstEl
 	// Calculates the L-n distance between 2 vectors
 	// TAKES INTO ACCOUNT THE "N" FIRST ELEMENTS
 	
-	int n=x.size();
+	unsigned long n=x.size();
 	assert(n == y.size());
 	assert(firstElements<n+1);
 	
@@ -745,7 +745,7 @@ double distanceLvector(int power, vector<double> x,vector<double> y, vector<int>
 	// Calculates the L-n distance between 2 vectors
 	// TAKES INTO ACCOUNT THE "weights" factor
 	
-	int n=x.size();
+	unsigned long n=x.size();
 	assert(n == y.size());
 	assert(n == weights.size());
 	
@@ -765,7 +765,7 @@ double normLvector(int power, vector<double> x)
 {
 	// Calculates the L-n norm of a vector
 	
-	int n=x.size();
+	unsigned long n=x.size();
 	
 	double res=0.0; 
 	
@@ -781,7 +781,7 @@ double powerLvector(int power, vector<double> x,vector<double> y )
 	// Calculates the L-n distance^n between 2 vectors
 	
 	
-	int n=x.size();
+	unsigned long n=x.size();
 	assert(n == y.size());
 	
 	double res=0.0;
@@ -843,7 +843,7 @@ double standardDeviation(vector<double> x)
 	// Returns the standard deviation of all elements
 	
 	double avg = averageElements(x);
-	int N = x.size();
+	unsigned long N = x.size();
 	
 	double sd = 0 ;
 	
@@ -861,7 +861,7 @@ double standardDeviation(vector<unsigned long int> x)
 	// Returns the standard deviation of all elements
 	
 	double avg = averageElements(x);
-	int N = x.size();
+	unsigned long N = x.size();
 	
 	double sd = 0 ;
 	
@@ -879,7 +879,7 @@ double standardDeviation(vector<unsigned long int> x)
 
 vector<double> smoothVector(vector<unsigned long int> x, int lagSmooth)
 {
-	int N = x.size()-2*lagSmooth;
+	unsigned long N = x.size()-2*lagSmooth;
 	if (N<=1)
 	{
 		cout<< endl << "CANNOT SMOOTH: VECTOR SIZE TOO SMALL AND LAG TOO LARGE"<<endl;
@@ -916,7 +916,7 @@ vector<double> numericalDerivative(vector<double> x, vector<double> t)
 {
 	// dX/dt
 	
-	int n = x.size();
+	unsigned long n = x.size();
 	if (t.size()!=n) 
 	{
 		cout << " numericalDerivative ERROR: vectors not the same size ***"<<endl;
@@ -938,7 +938,7 @@ vector<double> numericalSecondDerivative(vector<double> x, vector<double> t, int
 {
 	// dX/dt
 	
-	int n = x.size();
+	unsigned long n = x.size();
 	if (t.size()!=n) exit(1);
 	
 	if (n<=3) 
@@ -947,7 +947,7 @@ vector<double> numericalSecondDerivative(vector<double> x, vector<double> t, int
 		exit(1);
 	}
 	
-	int sizeDeriv2 = n-2*lagDeriv;
+	unsigned long sizeDeriv2 = n-2*lagDeriv;
 	vector<double> ddx(sizeDeriv2);
 	
 	for (int i=1; i<=sizeDeriv2; i++) 
@@ -975,7 +975,7 @@ double findAvgMax(vector<unsigned long int> x, vector<double> t, int lagSmooth, 
 	}
 	
 	// Extract the right elements of the "time" vector 
-	int n = t.size();
+	unsigned long n = t.size();
 	
 	vector<double> tt(n-2*lagSmooth);
 	
@@ -1070,7 +1070,7 @@ double findAvgMin(vector<unsigned long int> x, vector<double> t, int lagSmooth, 
 	}
 	
 	// Extract the right elements of the "time" vector 
-	int n = t.size();
+	unsigned long n = t.size();
 	
 	vector<double> tt(n-2*lagSmooth);
 	
@@ -1207,7 +1207,7 @@ Matrix LatinHypercubeSampling(vector<double> Vmin, vector<double> Vmax,
 	
     assert(Vmin.size()==Vmax.size());
 
-    int N = Vmin.size();
+    unsigned long N = Vmin.size();
     
     Matrix V(samplingNb,N);
     

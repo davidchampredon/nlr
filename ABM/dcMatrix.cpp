@@ -74,7 +74,7 @@ double & Matrix::operator [] (unsigned long i)
 
 void Matrix::RandomInit()
 {
-	srand ( time(NULL) );
+	srand ( (unsigned int) time(NULL) );
 	
 	for(unsigned long i=0;i<nbRows;i++)		
 		for(unsigned long j=0;j<nbCols;j++)

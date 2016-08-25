@@ -117,8 +117,8 @@ double	dcDataFrame::getValue(string rowname, string colname)
 
 void dcDataFrame::display()
 {
-	unsigned int n = _rowname.size();
-	unsigned int ncol = _value.getNbCols();
+	unsigned long n = _rowname.size();
+	unsigned long ncol = _value.getNbCols();
 	
 	cout << endl << "dcDataFrame Content:"<<endl;
 	
@@ -177,8 +177,8 @@ void dcDataFrame::saveToCSV(string filename, bool col_headers)
 	/// Save a dcDataFrame into a CSV file
 	/// Option to write column headers or not.
 	
-	unsigned int N = _rowname.size();
-	unsigned int M = _colname.size();
+	unsigned long N = _rowname.size();
+	unsigned long M = _colname.size();
 
 	ofstream f(filename);
 	

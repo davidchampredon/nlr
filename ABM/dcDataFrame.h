@@ -138,7 +138,7 @@ public:
 		
 		// Retrieve first line
 		vector<string> headersNames = getFirstLineHeaders(fh);
-		unsigned int n = headersNames.size();
+		unsigned long n = headersNames.size();
 		
 		if (headers)
 		{

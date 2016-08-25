@@ -53,7 +53,7 @@ void force_seed_reset(unsigned int);
 
 // === Continuous support ====
 
-double	uniform(int seed);				// Uniform in [0;1]
+double	uniform(long seed);				// Uniform in [0;1]
 double	uniform01();
 
 double	expo(double lambda);

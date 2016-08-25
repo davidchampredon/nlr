@@ -206,7 +206,7 @@ int	probaHistogramInt(vector<int> values, vector<double> probas)
 
 
 
-double uniform(int seed)
+double uniform(long seed)
 {
 	
 	// Generator: L'Ecuyer (good quality)
@@ -215,7 +215,7 @@ double uniform(int seed)
 	
 	seed = -seed; // initialization must be negative
 	
-	int j;
+	long j;
 	long k;
 	static long idum2=123456789;
 	static long iy=0;

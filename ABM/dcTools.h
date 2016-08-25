@@ -90,7 +90,7 @@ void vectorFromFile(vector<int>& res, string theFileName);
 void vectorFromCSVfile(vector<double>& res, const char * theFileName, int column);
 void vectorFromCSVfile_string(vector<string>& res, const char * theFileName, int column);
 
-void MatrixFromCSVfile(Matrix& M,string filename, int ncol);
+void MatrixFromCSVfile(Matrix& M,string filename, unsigned long ncol);
 
 
 template <class T> void vectorToFile(vector<T> v, string fileName)
@@ -243,7 +243,7 @@ template <class T> T sumElements(vector<T> x)
 template <class T> T extractElementRandom(vector<T> x)
 {
 	// Extracts an element randomly
-	int rndPos = uniformInt(0, x.size()-1);
+	int rndPos = uniformInt(0, (int) x.size()-1);
 	
 	return x[rndPos];
 }
@@ -289,7 +289,7 @@ template <class T> bool isElementPresent(vector<T> x, T elemValue)
 
 template <class T> unsigned long findIndexElement(vector<T> x, T elemValue) 
 {
-	unsigned long s;
+	unsigned long s = 0;
 	bool isPresent = false;
 	
 	for (unsigned long i=0; i<x.size(); i++) 
