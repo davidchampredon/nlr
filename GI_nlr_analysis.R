@@ -30,7 +30,7 @@ infect.init <- 1E-3
 I0 <- pop.size * infect.init   
 
 n.CPU <- 3
-n.MC  <- 5 * n.CPU   # Monte carlo iterations
+n.MC  <- 2 * n.CPU   # Monte carlo iterations
 
 
 base.prm <- list(R0 = R0,
@@ -61,14 +61,14 @@ K.list[[2]] <- list(Kfct = 'sqrt',
 K.list[[3]] <- list(Kfct = 'lin',
 					Kfct_prm = c(0))
 
-K.list[[4]] <- list(Kfct = 'exp',
-					Kfct_prm = c(2))
-
-K.list[[5]] <- list(Kfct = 'pow',
-					Kfct_prm = c(3))
-
-K.list[[6]] <- list(Kfct = 'inv',
-					Kfct_prm = c(2, -5))
+# K.list[[4]] <- list(Kfct = 'exp',
+# 					Kfct_prm = c(2))
+# 
+# K.list[[5]] <- list(Kfct = 'pow',
+# 					Kfct_prm = c(3))
+# 
+# K.list[[6]] <- list(Kfct = 'inv',
+# 					Kfct_prm = c(2, -5))
 
 
 # Define wrap function for parallel execution:
@@ -86,6 +86,9 @@ wrap_abm <- function(X,
 						  nCPU = n.CPU,
 						  libpath = libpath)
 	
+	# Time series:
+	ts.abm <- sim.abm[['ts']]
+	
 	# Generation interval results:
 	gi.abm <- sim.abm[['gi']]
 	gi.abm <- gi.abm[gi.abm$gi_bck.mean>0,]
@@ -102,7 +105,8 @@ wrap_abm <- function(X,
 	
 	infdur.raw <- sim.abm[['infdur.raw']]
 	
-	return(list(gi.abm = gi.abm,
+	return(list(ts.abm = ts.abm,
+				gi.abm = gi.abm,
 				gi.weekly.mean = gi.weekly.mean,
 				infdur.abm = infdur.abm,
 				infdur.weekly.mean = infdur.weekly.mean,
@@ -119,12 +123,19 @@ res <- lapply(X           = K.list,
 			  nCPU        = n.CPU)
 
 df.list <- list()
+df.ts.list <- list()
 dfall.list <- list()
 df.infdur.list <- list()
 dfall.infdur.list <- list()
 df.infdur.raw <- list()
 
 for (i in 1:length(res)) {
+	# Time series:
+	tmp.ts <- res[[i]]$ts.abm
+	tmp.ts$Kfct <- K.list[[i]]$Kfct
+	df.ts.list[[i]] <- tmp.ts
+	rm(tmp.ts)
+	
 	# GI:
 	tmp <- res[[i]]$gi.weekly.mean
 	tmp$Kfct <- K.list[[i]]$Kfct
@@ -150,6 +161,7 @@ for (i in 1:length(res)) {
 }
 
 df    <- do.call('rbind',df.list)
+df.ts <- do.call('rbind',df.ts.list)
 dfall <- do.call('rbind',dfall.list)
 
 df.infdur    <- do.call('rbind',df.infdur.list)
@@ -162,10 +174,21 @@ dfall.infdur <- subset(dfall.infdur, week>0)
 
 ### ==== PLOTS ====
 
+
+# Time series:
+if(save.to.file) pdf('plot_ts.pdf', width=12, height = 8)
+plot_ts(df.ts)
+if(save.to.file) dev.off()
+
+
+# Generation intervals:
+
 if(save.to.file) pdf('plot_gi.pdf', width=12, height = 8)
 plot_mean(df = df, type = 'gi')
 plot_distribution_mean(dfall = dfall, type = 'gi')
 if(save.to.file) dev.off()
+
+# Infectious duration:
 
 if(save.to.file) pdf('plot_infdur.pdf', width=12, height = 8)
 plot_mean(df = df.infdur, type = 'infdur')

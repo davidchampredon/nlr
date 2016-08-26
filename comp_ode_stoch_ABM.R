@@ -5,7 +5,7 @@ source('SIR_nlr_ABM.R')
 libpath <- "./ABM/Rlibrary/lib/"
 library(nlr,lib.loc = libpath)
 
-save.to.file <- F#TRUE
+save.to.file <- TRUE
 
 ### ==== Shared parameters ====
 

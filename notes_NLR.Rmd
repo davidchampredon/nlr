@@ -2,7 +2,7 @@
 title: "Non Linear Recovery"
 author: "David Champredon"
 date: "August 25, 2016"
-output: html_document
+output: pdf_document
 ---
 
 ```{r setup, include=FALSE}
@@ -50,7 +50,7 @@ Some names are redundant (e.g. `lin` could be expressed as `pow`) but that makes
 
 First of all, let's check there are no obvious implementation errors. The ABM with $K(I)=1$ is compared with both an ODE SIR model solved with `lsoda` and a stochastic SIR model using the `adaptivetau` package.
 
-```{r ode-stoch-abm-checks, echo=FALSE, cache=TRUE, fig.height=10, message=FALSE, warning=FALSE,results='hide'}
+```{r ode-stoch-abm-checks, echo=FALSE, cache=1, fig.height=10, message=FALSE, warning=FALSE,results='hide',fig.env='figure', fig.cap='Checks'}
 libpath <-  "./ABM/Rlibrary/lib/"
 library(nlr,lib.loc =libpath)
 source('./SIR_nlr_ODE.R')
@@ -218,6 +218,9 @@ infectious.mean <- 4.5  # in days
 latent.mean     <- 3.5  # in days
 R0              <- 3.00
 
+infect.init <- 1E-3
+I0 <- pop.size * infect.init 
+
 # Number of compartments in E and I:
 nE    <- 1
 nI    <- 1
@@ -248,7 +251,7 @@ K.list[[6]] <- list(Kfct = 'inv',
 ```
 
 
-```{r simulation, echo=FALSE, cache=TRUE,results='hide',include=FALSE}
+```{r simulation, echo=FALSE, cache=1,results='hide',include=FALSE}
 
 library(ggplot2)
 library(nlr,lib.loc = libpath)
@@ -266,8 +269,7 @@ mu        <- 1/1000
 gamma     <- 1/infectious.mean
 eps    <- mu/(gamma+mu)
 beta   <- R0*(gamma+mu)
-infect.init <- 1E-3
-I0 <- pop.size * infect.init   
+  
 
 base.prm <- list(R0 = R0,
 				 latent_mean     = latent.mean,
@@ -298,6 +300,8 @@ wrap_abm <- function(X,
 						  nMC = n.MC, 
 						  nCPU = n.CPU,
 						  libpath = libpath)
+		# Time series:
+	ts.abm <- sim.abm[['ts']]
 	
 	# Generation interval results:
 	gi.abm <- sim.abm[['gi']]
@@ -314,7 +318,8 @@ wrap_abm <- function(X,
 	infdur.abm <- z$infdur.abm
 	infdur.raw <- sim.abm[['infdur.raw']]
 	
-	return(list(gi.abm = gi.abm,
+	return(list(ts.abm = ts.abm,
+				gi.abm = gi.abm,
 				gi.weekly.mean = gi.weekly.mean,
 				infdur.abm = infdur.abm,
 				infdur.weekly.mean = infdur.weekly.mean,
@@ -331,12 +336,19 @@ res <- lapply(X           = K.list,
 			  nCPU        = n.CPU)
 
 df.list <- list()
+df.ts.list <- list()
 dfall.list <- list()
 df.infdur.list <- list()
 dfall.infdur.list <- list()
 df.infdur.raw <- list()
 
 for (i in 1:length(res)) {
+	# Time series:
+	tmp.ts <- res[[i]]$ts.abm
+	tmp.ts$Kfct <- K.list[[i]]$Kfct
+	df.ts.list[[i]] <- tmp.ts
+	rm(tmp.ts)
+	
 	# GI:
 	tmp <- res[[i]]$gi.weekly.mean
 	tmp$Kfct <- K.list[[i]]$Kfct
@@ -362,6 +374,7 @@ for (i in 1:length(res)) {
 }
 
 df    <- do.call('rbind',df.list)
+df.ts <- do.call('rbind',df.ts.list)
 dfall <- do.call('rbind',dfall.list)
 
 df.infdur    <- do.call('rbind',df.infdur.list)
@@ -371,32 +384,23 @@ df.infdur.raw <- do.call('rbind',df.infdur.raw)
 df.infdur <- subset(df.infdur, week>0)
 dfall.infdur <- subset(dfall.infdur, week>0)
 
-
-### ==== PLOTS ====
-
-# if(save.to.file) pdf('plot_gi.pdf', width=12, height = 8)
-# plot_mean(df = df, type = 'gi')
-# plot_distribution_mean(dfall = dfall, type = 'gi')
-# if(save.to.file) dev.off()
-# 
-# if(save.to.file) pdf('plot_infdur.pdf', width=12, height = 8)
-# plot_mean(df = df.infdur, type = 'infdur')
-# plot_distribution_mean(dfall = dfall.infdur, type = 'infdur')
-# plot_distribution_raw(df.infdur.raw, xmax=60)
-# plot_distribution_raw_time(df.infdur.raw, xmax=60)
-# if(save.to.file) dev.off()
-# 
 t1 <- as.numeric(Sys.time())
 message(paste('Time elapsed:',round((t1-t0)/60, 2), 'min'))
 ```
 
+### Time series
+
+```{r plot_timeseries,fig.env='figure', fig.cap='Time series'}
+plot_ts(df.ts)
+```
 
 ### Generation interval distributions
 
 For the backward generation interval distributions, the mean GI seems to be increased under all transformations of the recovery process (all curves are above `one`). Note that for the "standard" case `K=one`, we find the same shape as in Champredon & Dushoff RSPB 2015.
 It is also remarkable that the square root recovery streches the GIs and also the epidemic. 
 
-```{r plot_GI}
+
+```{r plot_GI,fig.env='figure', fig.cap='Generation interval means'}
 library(ggplot2)
 plot_mean(df = df, type = 'gi')
 
@@ -404,7 +408,7 @@ plot_mean(df = df, type = 'gi')
 
 Looking at the evolution of GI distributions is less clear to see the differences:
 
-```{r plot_GI_2}
+```{r plot_GI_2,fig.env='figure', fig.cap='Generation interval distribution f means'}
 plot_distribution_mean(dfall = dfall, type = 'gi')
 ```
 
@@ -412,12 +416,12 @@ plot_distribution_mean(dfall = dfall, type = 'gi')
 
 Patterns for the mean duration of infectiousness are more noisy. 
 
-```{r plot_infdur}
+```{r plot_infdur,fig.env='figure', fig.cap='Mean of infectious duration'}
 plot_mean(df = df.infdur, type = 'infdur')
 ```
 
 Unlike the GIs, it is easier to see what's going on by looking directly at the infectious duration distributions directly. Note the black dashed line is the exponential density, which must match the `K=one` case when `nI=1`:
-```{r plot_infdur_distribution}
+```{r plot_infdur_distribution,fig.env='figure', fig.cap='Distribution of infectious duration'}
 plot_distribution_raw(df.infdur.raw, xmax=60)
 ```
 
@@ -425,7 +429,7 @@ There seems to be a remarkable point (around infdur=6) where the shape for $K$ d
 
 Now, looking at how these distributions evolve with calendar time: 
 
-```{r}
+```{r plot_infdur_distrib_time,fig.env='figure', fig.cap='Infectious duration distribution retireved at several calendar times.'}
 plot_distribution_raw_time(df.infdur.raw, xmax=60)
 ```
 

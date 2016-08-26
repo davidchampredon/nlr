@@ -1,5 +1,4 @@
 
-*.pdf
 *.gz
 ABM/Rlibrary/lib/*
 ABM/Rlibrary/nlr/*
