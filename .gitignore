@@ -5,4 +5,4 @@ ABM/Rlibrary/nlr/*
 ABM/Rlibrary/nlr.Rcheck/*
 notes_NLR_cache/*
 notes_NLR_files/*
-plot_*.pdf
+./plot_*.pdf
