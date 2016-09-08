@@ -31,7 +31,7 @@ infect.init <- 1E-3
 I0 <- pop.size * infect.init   
 
 n.CPU <- 3
-n.MC  <- 5 * n.CPU   # Monte carlo iterations
+n.MC  <- 2 * n.CPU   # Monte carlo iterations
 
 
 base.prm <- list(R0 = R0,
