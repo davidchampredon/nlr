@@ -93,6 +93,12 @@ double simulator::eventRate_infectiousProgress(unsigned int i){
 	if (_Kfct == "inv")   { KI = 1/(_Kfct_prm[0] + _Kfct_prm[1] * I/_popSize) ; found = true;}
 	if (_Kfct == "pow")   { KI = pow(I/_popSize,_Kfct_prm[0]-1) ; found = true;}
 	
+	if (_Kfct == "affpow")
+	{
+		KI = pow(_Kfct_prm[0] + _Kfct_prm[1] * I/_popSize, _Kfct_prm[2]) ;
+		found = true;
+	}
+	
 	stopif(!found, "Non-linear recovery type (_Kfct) " + _Kfct + " unknown");
 	
 	return _gamma[i] * I * KI;

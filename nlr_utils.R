@@ -1,6 +1,8 @@
 library(ggplot2)
 library(gridExtra)
 
+col.palette <- "Reds"
+
 summary.gi <- function(gi.abm, CIwidth) {
 	# Weekly Averages 
 	gi.abm$day <- floor(gi.abm$t.round)
@@ -29,11 +31,13 @@ summary.infdur <- function(infdur.abm, CIwidth) {
 
 plot_ts <- function(df.ts){
 	# Plot time series
-	g <- ggplot(df.ts)+geom_line(aes(x=t,y=prev.mean,colour=Kfct),size=1) + scale_y_log10()
+	g <- ggplot(df.ts)+geom_line(aes(x=t,y=prev.mean,colour=KfctID),size=1) + scale_y_log10()
+	g <- g + scale_color_brewer(palette  = col.palette)
 	g <- g + ggtitle("Prevalence time series") + xlab('Time (days)')
 
-	g2 <- ggplot(df.ts)+geom_line(aes(x=t,y=S.mean,colour=Kfct),size=1) + scale_y_log10()
+	g2 <- ggplot(df.ts)+geom_line(aes(x=t,y=S.mean,colour=KfctID),size=1) + scale_y_log10()
 	g2 <- g2 + ggtitle("Susceptible time series") + xlab('Time (days)')
+	g2 <- g2 + scale_color_brewer(palette  = col.palette)
 	grid.arrange(g,g2,nrow=2)
 }
 
@@ -42,12 +46,13 @@ plot_mean <- function(df, type){
 	g0 <- ggplot(df) 
 	g <- g0 + geom_line(aes_string(x='week', 
 								   y=type, 
-								   colour='Kfct'),
+								   colour='KfctID'),
 						size = 2)
 	g <- g + scale_y_log10()
 	if(type=='gi') title <- 'Backward GI (weekly mean)'
 	if(type=='infdur') title <- 'Infectious duration (weekly mean)'
 	g <- g + ggtitle(title)
+	g <- g + scale_color_brewer(palette  = col.palette)
 	plot(g)
 }
 
@@ -68,9 +73,10 @@ plot_distribution_mean <- function(dfall, type) {
 	g.distrib <- ggplot(dfall) + geom_density(aes_string(x= xlabel, 
 														 colour='week'),
 											  adjust = 2)
-	g.distrib <- g.distrib + facet_wrap(~Kfct)
+	g.distrib <- g.distrib + facet_wrap(~KfctID)
 	g.distrib <- g.distrib + ggtitle(title)
 	g.distrib <- g.distrib + scale_x_log10()
+	# g.distrib <- g.distrib + scale_color_brewer(palette  = col.palette)
 	plot(g.distrib)
 }
 
@@ -78,7 +84,8 @@ plot_distribution_raw <- function(df,xmax=80) {
 	
 	x <- subset(df, infdur>0 & t>0)
 	
-	g <- ggplot(x)+geom_density(aes(x=infdur, colour=Kfct),adjust=1, size=1.5)
+	g <- ggplot(x)+geom_density(aes(x=infdur, colour=KfctID),
+								adjust=1, size=1.5)
 	g <- g + coord_cartesian(xlim=c(0,xmax))
 	
 	xx <- seq(0,xmax,by=0.1)
@@ -87,6 +94,7 @@ plot_distribution_raw <- function(df,xmax=80) {
 	
 	g <- g + geom_line(data = dfcheck, aes(x=xx,y=yy), colour='black', linetype = 2)
 	g <- g + ggtitle('Infectious duration distributions \n (at all calendar times)')+ xlab('Infectious duration (days)')
+	g <- g + scale_color_brewer(palette  = col.palette)
 	plot(g)
 }
 
@@ -95,12 +103,14 @@ plot_distribution_raw_time <- function(df,xmax=80) {
 	x <- subset(df, infdur>0 & t>0)
 	
 	x$day <- floor(x$t.round)
-	x$week <- 1+ x$day %/% 7 
-	
-	g <- ggplot(x)+geom_density(aes(x=infdur, colour=factor(week)),adjust=1, size=0.5) 
-	g <- g + facet_wrap(~Kfct, scales = 'free')
+	x$week <- 1+ x$day %/% 14 
+
+	g <- ggplot(x)+geom_density(aes(x=infdur, colour=factor(week) ),
+								adjust=1, size=0.5) 
+	g <- g + facet_wrap(~KfctID, scales = 'free')
 	g <- g + coord_cartesian(xlim=c(0,xmax),ylim=c(0,0.2))
 	g <- g + ggtitle('Infectious duration distributions') + xlab('Infectious duration (days)')
+	
 	plot(g)
 
 }

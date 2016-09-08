@@ -15,7 +15,7 @@ save.to.file <- T
 ### ==== ABM parameters ====
 
 horizon   <- 365  # in days
-pop.size  <- 1E4
+pop.size  <- 5E3  #1E4
 
 infectious.mean <- 4.5  # in days
 latent.mean     <- 3.5  # in days
@@ -53,23 +53,17 @@ simulParams <- list(horizon = horizon,
 
 K.list <- list()
 
-K.list[[1]] <- list(Kfct = 'one',
-					Kfct_prm = c(0))
+powvec <- seq(0,3, by=0.5)
+np <- length(powvec)
 
-K.list[[2]] <- list(Kfct = 'sqrt',
-					Kfct_prm = c(0))
+for(i in 1:np){
+	K.list[[i]] <- list(Kfct = 'affpow',
+						Kfct_prm = c(0,1,powvec[i]))
+}
 
-K.list[[3]] <- list(Kfct = 'lin',
-					Kfct_prm = c(0))
+# K.list[[np+1]] <- list(Kfct = 'exp',
+# 					Kfct_prm = c(0))
 
-K.list[[4]] <- list(Kfct = 'exp',
-					Kfct_prm = c(2))
-
-K.list[[5]] <- list(Kfct = 'pow',
-					Kfct_prm = c(3))
-
-K.list[[6]] <- list(Kfct = 'inv',
-					Kfct_prm = c(2, -5))
 
 
 # Define wrap function for parallel execution:
@@ -130,34 +124,54 @@ df.infdur.list <- list()
 dfall.infdur.list <- list()
 df.infdur.raw <- list()
 
+KfctMakeID <- function(df, K.list) {
+	df$Kfct <- K.list[[i]]$Kfct
+	df$Kfct_prm <- paste(K.list[[i]]$Kfct_prm,collapse='_')
+	df$KfctID <- paste(df$Kfct, df$Kfct_prm, sep='_')
+	return(df)
+}
+
 for (i in 1:length(res)) {
 	# Time series:
 	tmp.ts <- res[[i]]$ts.abm
-	tmp.ts$Kfct <- K.list[[i]]$Kfct
-	df.ts.list[[i]] <- tmp.ts
+	# tmp.ts$Kfct <- K.list[[i]]$Kfct
+	# tmp.ts$Kfct_prm <- paste(K.list[[i]]$Kfct_prm,collapse='_')
+	df.ts.list[[i]] <- KfctMakeID(tmp.ts, K.list)
 	rm(tmp.ts)
 	
 	# GI:
 	tmp <- res[[i]]$gi.weekly.mean
-	tmp$Kfct <- K.list[[i]]$Kfct
-	df.list[[i]] <- tmp
+	# tmp$Kfct <- K.list[[i]]$Kfct
+	# tmp$Kfct_prm <- paste(K.list[[i]]$Kfct_prm,collapse='_')
+	# df.list[[i]] <- tmp
+	df.list[[i]] <- KfctMakeID(tmp, K.list)
+	
 	rm(tmp)
 	tmp <- res[[i]]$gi.abm
-	tmp$Kfct <- K.list[[i]]$Kfct
-	dfall.list[[i]] <- tmp
+	# tmp$Kfct <- K.list[[i]]$Kfct
+	# dfall.list[[i]] <- tmp
+	dfall.list[[i]] <- KfctMakeID(tmp, K.list)
 	
 	# Infectious duration:
 	tmp2 <- res[[i]]$infdur.weekly.mean
-	tmp2$Kfct <- K.list[[i]]$Kfct
-	df.infdur.list[[i]] <- tmp2
+	# tmp2$Kfct <- K.list[[i]]$Kfct
+	# tmp2$Kfct_prm <- paste(K.list[[i]]$Kfct_prm,collapse='_')
+	# df.infdur.list[[i]] <- tmp2
+	df.infdur.list[[i]] <- KfctMakeID(tmp2, K.list)
+	
 	rm(tmp2)
 	tmp2 <- res[[i]]$infdur.abm
-	tmp2$Kfct <- K.list[[i]]$Kfct
-	dfall.infdur.list[[i]] <- tmp2
+	# tmp2$Kfct <- K.list[[i]]$Kfct
+	# dfall.infdur.list[[i]] <- tmp2
+	dfall.infdur.list[[i]] <- KfctMakeID(tmp2, K.list)
 
+	zz <- KfctMakeID(tmp2, K.list)
+	
 	tmp3 <- res[[i]]$infdur.raw
-	tmp3$Kfct <- K.list[[i]]$Kfct
-	df.infdur.raw[[i]] <- tmp3
+	# tmp3$Kfct <- K.list[[i]]$Kfct
+	# tmp3$Kfct_prm <- paste(K.list[[i]]$Kfct_prm,collapse='_')
+	# df.infdur.raw[[i]] <- tmp3
+	df.infdur.raw[[i]] <- KfctMakeID(tmp3, K.list)
 	rm(tmp3)
 }
 
@@ -175,6 +189,7 @@ dfall.infdur <- subset(dfall.infdur, week>0)
 
 ### ==== PLOTS ====
 
+theme_set(theme_bw())
 
 # Time series:
 if(save.to.file) pdf('plot_ts.pdf', width=12, height = 8)
@@ -195,7 +210,7 @@ if(save.to.file) pdf('plot_infdur.pdf', width=12, height = 8)
 plot_mean(df = df.infdur, type = 'infdur')
 plot_distribution_mean(dfall = dfall.infdur, type = 'infdur')
 plot_distribution_raw(df.infdur.raw, xmax=60)
-plot_distribution_raw_time(df.infdur.raw, xmax=60)
+plot_distribution_raw_time(df=df.infdur.raw, xmax=60)
 if(save.to.file) dev.off()
 
 
