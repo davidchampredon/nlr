@@ -5,3 +5,9 @@ ABM/Rlibrary/nlr/*
 ABM/Rlibrary/nlr.Rcheck/*
 notes_NLR_cache/*
 notes_NLR_files/*
+
+plot_gi.pdf
+
+plot_infdur.pdf
+
+plot_ts.pdf

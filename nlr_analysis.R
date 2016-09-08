@@ -24,13 +24,14 @@ R0        <- 3.00
 
 mu        <- 1/1000
 gamma     <- 1/infectious.mean
-eps    <- mu/(gamma+mu)
-beta   <- R0*(gamma+mu)
+eps       <- mu/(gamma+mu)
+beta      <- R0*(gamma+mu)
+
 infect.init <- 1E-3
 I0 <- pop.size * infect.init   
 
 n.CPU <- 3
-n.MC  <- 2 * n.CPU   # Monte carlo iterations
+n.MC  <- 5 * n.CPU   # Monte carlo iterations
 
 
 base.prm <- list(R0 = R0,
@@ -61,14 +62,14 @@ K.list[[2]] <- list(Kfct = 'sqrt',
 K.list[[3]] <- list(Kfct = 'lin',
 					Kfct_prm = c(0))
 
-# K.list[[4]] <- list(Kfct = 'exp',
-# 					Kfct_prm = c(2))
-# 
-# K.list[[5]] <- list(Kfct = 'pow',
-# 					Kfct_prm = c(3))
-# 
-# K.list[[6]] <- list(Kfct = 'inv',
-# 					Kfct_prm = c(2, -5))
+K.list[[4]] <- list(Kfct = 'exp',
+					Kfct_prm = c(2))
+
+K.list[[5]] <- list(Kfct = 'pow',
+					Kfct_prm = c(3))
+
+K.list[[6]] <- list(Kfct = 'inv',
+					Kfct_prm = c(2, -5))
 
 
 # Define wrap function for parallel execution:
