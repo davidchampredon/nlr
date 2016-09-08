@@ -1,0 +1,7 @@
+pop.size, 7000
+horizon, 365
+R0, 2.00
+dol_mean, 2.0
+doi_mean, 4.0
+ncpu, 3
+nmccpu, 1

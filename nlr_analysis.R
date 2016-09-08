@@ -14,13 +14,17 @@ save.to.file <- T
 
 ### ==== ABM parameters ====
 
-horizon   <- 365  # in days
-pop.size  <- 5E3  #1E4
+prm <- read.csv('prm.csv',header = FALSE)
 
-infectious.mean <- 4.5  # in days
-latent.mean     <- 3.5  # in days
+getprm <- function(prm, name) {
+	return(prm[prm[,1]==name,2])
+}
 
-R0        <- 3.00
+horizon         <- getprm(prm,'horizon')  # in days
+pop.size        <- getprm(prm,'pop.size')  #1E4
+latent.mean     <- getprm(prm,'dol_mean')  # in days
+infectious.mean <- getprm(prm,'doi_mean')  # in days
+R0              <- getprm(prm,'R0')
 
 mu        <- 1/1000
 gamma     <- 1/infectious.mean
@@ -30,8 +34,8 @@ beta      <- R0*(gamma+mu)
 infect.init <- 1E-3
 I0 <- pop.size * infect.init   
 
-n.CPU <- 3
-n.MC  <- 2 * n.CPU   # Monte carlo iterations
+n.CPU <- getprm(prm,'ncpu')
+n.MC  <- getprm(prm,'nmccpu') * n.CPU   # Monte carlo iterations
 
 
 base.prm <- list(R0 = R0,
@@ -210,7 +214,7 @@ if(save.to.file) pdf('plot_infdur.pdf', width=12, height = 8)
 plot_mean(df = df.infdur, type = 'infdur')
 plot_distribution_mean(dfall = dfall.infdur, type = 'infdur')
 plot_distribution_raw(df.infdur.raw, xmax=60)
-plot_distribution_raw_time(df=df.infdur.raw, xmax=60)
+plot_distribution_raw_time(df=df.infdur.raw, xmax=60, time.bucket=10)
 if(save.to.file) dev.off()
 
 

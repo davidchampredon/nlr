@@ -98,18 +98,19 @@ plot_distribution_raw <- function(df,xmax=80) {
 	plot(g)
 }
 
-plot_distribution_raw_time <- function(df,xmax=80) {
+plot_distribution_raw_time <- function(df,xmax=80, time.bucket=7) {
 	
 	x <- subset(df, infdur>0 & t>0)
 	
 	x$day <- floor(x$t.round)
-	x$week <- 1+ x$day %/% 14 
+	x$timebucket <- 1+ x$day %/% time.bucket
 
-	g <- ggplot(x)+geom_density(aes(x=infdur, colour=factor(week) ),
+	g <- ggplot(x)+geom_density(aes(x=infdur, colour=factor(timebucket) ),
 								adjust=1, size=0.5) 
 	g <- g + facet_wrap(~KfctID, scales = 'free')
 	g <- g + coord_cartesian(xlim=c(0,xmax),ylim=c(0,0.2))
-	g <- g + ggtitle('Infectious duration distributions') + xlab('Infectious duration (days)')
+	g <- g + ggtitle(paste('Infectious duration distributions\n(time bucket=',time.bucket,'days)') )
+	g <- g + xlab('Infectious duration (days)')
 	
 	plot(g)
 
