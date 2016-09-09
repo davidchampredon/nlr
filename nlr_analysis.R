@@ -57,7 +57,7 @@ simulParams <- list(horizon = horizon,
 
 K.list <- list()
 
-powvec <- seq(0,3, by=0.5)
+powvec <- c(0, 0.5, 1, 2, 3)
 np <- length(powvec)
 
 for(i in 1:np){
@@ -217,6 +217,8 @@ plot_distribution_raw(df.infdur.raw, xmax=60)
 plot_distribution_raw_time(df=df.infdur.raw, xmax=60, time.bucket=10)
 if(save.to.file) dev.off()
 
+
+save.image(file = 'simul.RData')
 
 t1 <- as.numeric(Sys.time())
 
