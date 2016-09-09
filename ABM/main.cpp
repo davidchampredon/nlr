@@ -32,11 +32,11 @@ int main(int argc, const char * argv[]) {
 	// main simulation parameters:
 	
 	double horizon			= 360;
-    unsigned long popSize	= 1000;
-	double R0				= 1.1;
-	double latent_mean		= 2.345;
-	double infectious_mean	= 3.789;
-    int nE					= 0;
+    unsigned long popSize	= 15000;
+	double R0				= 2.0;
+	double latent_mean		= 2.1;
+	double infectious_mean	= 3.1;
+    int nE					= 1;
 	int nI					= 1;
 	unsigned long mc_iter	= 1;
 	int njobs				= 1;
