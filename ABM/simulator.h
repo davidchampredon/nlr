@@ -22,6 +22,9 @@ class simulator
 	unsigned long		_count_S;
 	unsigned long		_count_I;
 	unsigned long		_count_R;
+    
+    vector<unsigned long> _id_indiv_S;   // keep track of susceptible individuals
+    vector<unsigned long> _id_indiv_I;   // keep track of infectious individuals
 	
 	// number of E and I compartments
 	int					_nE;

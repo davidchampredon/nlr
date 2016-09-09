@@ -288,6 +288,7 @@ void simulator::initialize(unsigned long initInfectious)
 		// are put in I[1] (_not_ exposed/latent stage)
 		_indiv[i].set_infectiousStatus(_nE+1);
 		_indiv[i].set_timeDiseaseAcquisition(0.0);
+        _id_indiv_I.push_back(i);
 	}
 	
 	// intialize counts
@@ -295,6 +296,11 @@ void simulator::initialize(unsigned long initInfectious)
 	_count_S = _popSize - initInfectious;
 	_count_R = 0;
 	
+    // initialize vector keeping track of susceptible IDs
+    for (unsigned long i=initInfectious; i<_indiv.size(); i++) {
+        _id_indiv_S.push_back(i);
+    }
+    
 	// Initialization
 	
 	double t=0.0;
@@ -311,22 +317,18 @@ void simulator::actionOnEvent(unsigned int eventType, double time_event){
 	
 	/// Performs updates on individuals given an event type
 	
-
-	
 	// Event is an new infection
 	if(eventType==0 && _count_S>0)
 	{
-		// retrieve all the susceptible IDs
-		vector<unsigned long> x = census_ID(0);
 		
 		// Pick new infectee randomly
-		unsigned long ID_infectee = extractElementRandom(x);
+        unsigned long ID_infectee = extractElementRandom(_id_indiv_S);
 		
-		// retrieve all the infectious IDs
-		vector<unsigned long> x_I = census_ID_I();
-		
+        // update tracker:
+        _id_indiv_S.erase(std::remove(_id_indiv_S.begin(), _id_indiv_S.end(), ID_infectee), _id_indiv_S.end());
+        
 		// Pick new infector randomly
-		unsigned long ID_infector = extractElementRandom(x_I);
+        unsigned long ID_infector = extractElementRandom(_id_indiv_I);
 		
 		// Now that we know who infected whom,
 		// update all relevant quantities
@@ -364,9 +366,11 @@ void simulator::actionOnEvent(unsigned int eventType, double time_event){
 		vector<unsigned long> x = census_ID(eventType);
 		
 		if(x.size()>0){
-			// Pick one randomly
+			
+            // Pick one randomly
 			unsigned long ID_selected = extractElementRandom(x);
-			// Move this individual to the next stage
+			
+            // Move this individual to the next stage
 			_indiv[ID_selected].incrementStatus();
 			
 			// From last E to I[1],
@@ -377,6 +381,7 @@ void simulator::actionOnEvent(unsigned int eventType, double time_event){
 				set_timeInfectiousnessStart(ID_selected, time_event);
 				
 				// keep track of the counts:
+                _id_indiv_I.push_back(ID_selected);
 				_count_I++;
 			}
 			
@@ -388,11 +393,17 @@ void simulator::actionOnEvent(unsigned int eventType, double time_event){
 				set_timeInfectiousnessEnd(ID_selected, time_event);
 				set_infectiousDuration(ID_selected);
 				
+                // update tracker:
+                _id_indiv_I.erase(std::remove(_id_indiv_I.begin(), _id_indiv_I.end(), ID_selected), _id_indiv_I.end());
+                
 				_count_I--;
 				_count_R++;
 			}
 		}
 	}
+    // book keeping checks
+    stopif(_count_S != _id_indiv_S.size(), "Book keeping error with _id_indiv_S.");
+    stopif(_count_I != _id_indiv_I.size(), "Book keeping error with _id_indiv_I.");
 }
 
 
@@ -525,146 +536,6 @@ void simulator::run_tauLeap(double horizon,
 		}
 	}
 }
-
-
-
-void simulator::run__OLD(double horizon,
-					unsigned long initInfectious,
-					bool calc_WIW_Re)
-{
-	/// Run the epidemic simulation with the exact Gillespie algorithm
-	
-	clean_start();
-	
-	// Set initial infectious individuals
-	
-	for(int i=0; i<initInfectious; i++)
-	{
-		// Warning: initial infectious individuals
-		// are put in I[1] (_not_ exposed/latent stage)
-		_indiv[i].set_infectiousStatus(_nE+1);
-		_indiv[i].set_timeDiseaseAcquisition(0.0);
-	}
-	
-	// intialize counts
-	_count_I = initInfectious;
-	_count_S = _popSize - initInfectious;
-	_count_R = 0;
-	
-	// Initialization
-	
-	double t=0.0;
-	_time.push_back(t);
-	_cumIncidence.push_back(initInfectious);
-	_prevalence.push_back(initInfectious);
-	_nS.push_back(_popSize - initInfectious);
-	_nR.push_back(0);
-	
-	// Simulation
-	
-	while ( t<horizon && at_least_one_S_and_E_or_I() )
-	{
-		// Draw the next event time based on the sum of specified rates
-		double dt = drawNextEventInterval();
-		double time_event = t+dt;
-		
-		// Draw the type of event based on each specified rates
-		unsigned int et	= drawEventType();
-		
-		// --- Event is NOT a new infection
-		if(et>0)
-		{
-			// retrieve all the relevant IDs
-			vector<unsigned long> x = census_ID(et);
-			
-			// Pick one randomly
-			unsigned long ID_selected = extractElementRandom(x);
-			
-			// Move this individual to the next stage
-			_indiv[ID_selected].incrementStatus();
-		}
-		
-		
-		// --- Event is an new infection
-		if(et==0){
-			// retrieve all the susceptible IDs
-			vector<unsigned long> x = census_ID(0);
-			
-			// Pick new infectee randomly
-			unsigned long ID_infectee = extractElementRandom(x);
-			
-			// retrieve all the infectious IDs
-			vector<unsigned long> x_I = census_ID_I();
-			
-			// Pick new infector randomly
-			unsigned long ID_infector = extractElementRandom(x_I);
-			
-			
-			// Now that we know who infected whom,
-			// update all relevant quantities
-			
-			// > infectious status and infector ID
-			set_infectiousStatus(ID_infectee, 1);
-			set_infectorID(ID_infectee, ID_infector);
-			
-			// > timing of infections from both view points
-			set_timeDiseaseAcquisition(ID_infectee, time_event);
-			set_timeDiseaseTransmit(ID_infector, time_event);
-			
-			// > generation intervals
-			double gi = time_event - get_timeDiseaseAcquisition(ID_infector);
-			set_GIbck(ID_infectee, gi);
-			set_GIfwd(ID_infector, gi);
-		}
-		
-		// Update WIW matrix
-		// (only at rounded times)
-		if (calc_WIW_Re && t-dt<int(t) && int(t)<t)	calc_WIW(t);
-		
-		
-		// update times
-		_time.push_back(time_event);
-		t += dt;
-		
-		// -- Keep track of S and I counts --
-		// transmission:
-		if(et==0) _count_S--;
-		
-		// from last E to I[1]:
-		if(et==_nE) _count_I++;
-		
-		// from last I to R
-		if(et==(_nE+_nI)){
-			_count_I--;
-			_count_R++;
-		}
-		
-		// update prevalence time series
-		_prevalence.push_back(_count_I);
-		
-		// update susceptible counts time series
-		_nS.push_back(_count_S);
-		_nR.push_back(_count_R);
-		
-		// calculate cumulative incidence
-		double inc = (et==0)?1:0;
-		inc += _cumIncidence[_cumIncidence.size()-1];
-		_cumIncidence.push_back(inc);
-		
-	} // end-while-loop
-	
-	// Calculate time series of case effective reproductive number _Reff
-	// (_WIW must be calculated until horizon)
-	if(calc_WIW_Re) calc_Reff();
-	
-	// Integrity check
-	if (calc_WIW_Re && _WIW.size()>0){
-		unsigned long n_wiw = _WIW[_WIW.size()-1].countNonZeroElements();
-		unsigned long n_cuminc =_cumIncidence[_cumIncidence.size()-1];
-		stopif(n_wiw>n_cuminc, "cumulative incidences (_WIW vs _cumIncidence) not consistent!");
-	}
-}
-
 
 
 void simulator::calc_WIW(double t)
@@ -860,13 +731,17 @@ void simulator::set_GIbck(unsigned long IDindiv, double gi)
 {
 	/// Set backward generation interval to value 'gi' for individual ID 'IDindiv'
 	
-	for(int i=0; i<_popSize; i++)
-	{
-		if(_indiv[i].get_ID()==IDindiv) {
-			_indiv[i].set_GIbck(gi);
-			break;
-		}
-	}
+    // WARNING: assume ID = position in vector!
+    
+    _indiv[IDindiv].set_GIbck(gi);
+    
+//	for(int i=0; i<_popSize; i++)
+//	{
+//		if(_indiv[i].get_ID()==IDindiv) {
+//			_indiv[i].set_GIbck(gi);
+//			break;
+//		}
+//	}
 	
 }
 
@@ -874,13 +749,17 @@ void simulator::set_GIfwd(unsigned long IDindiv, double gi)
 {
 	/// Set backward generation interval to value 'gi' for individual ID 'IDindiv'
 	
-	for(int i=0; i<_popSize; i++)
-	{
-		if(_indiv[i].get_ID()==IDindiv){
-			_indiv[i].set_GIfwd_incr(gi);
-			break;
-		}
-	}
+    // WARNING: assume ID = position in vector!
+    
+    _indiv[IDindiv].set_GIfwd_incr(gi);
+    
+//	for(int i=0; i<_popSize; i++)
+//	{
+//		if(_indiv[i].get_ID()==IDindiv){
+//			_indiv[i].set_GIfwd_incr(gi);
+//			break;
+//		}
+//	}
 	
 }
 
@@ -888,15 +767,19 @@ void simulator::set_GIfwd(unsigned long IDindiv, double gi)
 
 double simulator::get_timeDiseaseAcquisition(unsigned long ID)
 {
-	double res = -9.99;
+	 // WARNING: assume ID = position in vector!
+    
 	
-	for(int i=0; i<_popSize; i++){
-		if(_indiv[i].get_ID()==ID){
-			res=_indiv[i].get_timeDiseaseAcquisition();
-			break;
-		}
-	}
-	return res;
+    return  _indiv[ID].get_timeDiseaseAcquisition();
+    
+    //        double res = -9.99;
+    //	for(int i=0; i<_popSize; i++){
+    //		if(_indiv[i].get_ID()==ID){
+    //			res=_indiv[i].get_timeDiseaseAcquisition();
+    //			break;
+    //		}
+    //	}
+    //	return res;
 }
 
 
@@ -904,79 +787,110 @@ double simulator::get_timeDiseaseAcquisition(unsigned long ID)
 
 void simulator::set_infectiousStatus(unsigned long IDindiv, unsigned int s)
 {
-	for(int i=0; i<_popSize; i++){
-		if(_indiv[i].get_ID()==IDindiv){
-			_indiv[i].set_infectiousStatus(s);
-			break;
-		}
-	}
+    // WARNING: assume ID = position in vector!
+    
+    _indiv[IDindiv].set_infectiousStatus(s);
+//    int i=0;
+//	for(i=0; i<_popSize; i++){
+//		if(_indiv[i].get_ID()==IDindiv){
+//			_indiv[i].set_infectiousStatus(s);
+//			break;
+//		}
+//	}
+
 }
 
 
 
 void simulator::set_infectorID(unsigned long IDinfectee, unsigned long IDinfector)
 {
-	for(int i=0; i<_popSize; i++){
-		if(_indiv[i].get_ID()==IDinfectee){
-			_indiv[i].set_infectorID(IDinfector);
-			break;
-		}
-	}
+    // WARNING: assume ID = position in vector!
+    
+    _indiv[IDinfectee].set_infectorID(IDinfector);
+    
+//    for(int i=0; i<_popSize; i++){
+//		if(_indiv[i].get_ID()==IDinfectee){
+//			_indiv[i].set_infectorID(IDinfector);
+//			break;
+//		}
+//	}
 }
 
 
 void simulator::set_timeDiseaseAcquisition(unsigned long IDinfectee, double t)
 {
-	for(int i=0; i<_popSize; i++)
-	{
-		if(_indiv[i].get_ID()==IDinfectee){
-			_indiv[i].set_timeDiseaseAcquisition(t);
-			break;
-		}
-	}
+    // WARNING: assume ID = position in vector!
+    
+    _indiv[IDinfectee].set_timeDiseaseAcquisition(t);
+
+    
+//	for(int i=0; i<_popSize; i++)
+//	{
+//		if(_indiv[i].get_ID()==IDinfectee){
+//			_indiv[i].set_timeDiseaseAcquisition(t);
+//			break;
+//		}
+//	}
 }
 
 void simulator::set_timeDiseaseTransmit(unsigned long IDinfector, double t)
 {
-	for(int i=0; i<_popSize; i++){
-		if(_indiv[i].get_ID()==IDinfector){
-			_indiv[i].set_timeDiseaseTransmit(t);
-			break;
-		}
-	}
+    // WARNING: assume ID = position in vector!
+    
+    _indiv[IDinfector].set_timeDiseaseTransmit(t);
+
+//    for(int i=0; i<_popSize; i++){
+//		if(_indiv[i].get_ID()==IDinfector){
+//			_indiv[i].set_timeDiseaseTransmit(t);
+//			break;
+//		}
+//	}
 }
 
 
 void simulator::set_timeInfectiousnessStart(unsigned long IDinfectious, double t){
 	
-	for(int i=0; i<_popSize; i++){
-		if(_indiv[i].get_ID() == IDinfectious){
-			_indiv[i].set_timeInfectiousnessStart(t);
-			break;
-		}
-	}
+    // WARNING: assume ID = position in vector!
+    
+    _indiv[IDinfectious].set_timeInfectiousnessStart(t);
+    
+//    for(int i=0; i<_popSize; i++){
+//		if(_indiv[i].get_ID() == IDinfectious){
+//			_indiv[i].set_timeInfectiousnessStart(t);
+//			break;
+//		}
+//	}
 }
 
 void simulator::set_timeInfectiousnessEnd(unsigned long IDinfectious, double t){
 	
-	for(int i=0; i<_popSize; i++){
-		if(_indiv[i].get_ID() == IDinfectious){
-			_indiv[i].set_timeInfectiousnessEnd(t);
-			break;
-		}
-	}
+    // WARNING: assume ID = position in vector!
+    
+    _indiv[IDinfectious].set_timeInfectiousnessEnd(t);
+    
+//    for(int i=0; i<_popSize; i++){
+//		if(_indiv[i].get_ID() == IDinfectious){
+//			_indiv[i].set_timeInfectiousnessEnd(t);
+//			break;
+//		}
+//	}
 }
 
 
 void simulator::set_infectiousDuration(unsigned long IDinfectious){
 	
-	for(int i=0; i<_popSize; i++){
-		if(_indiv[i].get_ID() == IDinfectious){
-			double x = _indiv[i].get_timeInfectiousnessEnd() - _indiv[i].get_timeInfectiousnessStart();
-			_indiv[i].set_infectiousDuration(x);
-			break;
-		}
-	}
+    // WARNING: assume ID = position in vector!
+    
+    double x = _indiv[IDinfectious].get_timeInfectiousnessEnd() - _indiv[IDinfectious].get_timeInfectiousnessStart();
+    _indiv[IDinfectious].set_infectiousDuration(x);
+    
+//    for(int i=0; i<_popSize; i++){
+//		if(_indiv[i].get_ID() == IDinfectious){
+//			double x = _indiv[i].get_timeInfectiousnessEnd() - _indiv[i].get_timeInfectiousnessStart();
+//			_indiv[i].set_infectiousDuration(x);
+//			break;
+//		}
+//	}
 }
 
 
