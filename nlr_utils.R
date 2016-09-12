@@ -42,22 +42,26 @@ plot_ts <- function(df.ts){
 }
 
 
-plot_mean <- function(df, type){
+plot_mean <- function(df, type, popsize, mc){
+	
+	if(type=='gi') title <- 'Backward GI (weekly mean)'
+	if(type=='infdur') title <- 'Infectious duration (weekly mean)'
+	title <- paste0(title,'\n PopSize = ',popsize, ' ; nMC = ',mc)
+	
 	g0 <- ggplot(df) 
 	g <- g0 + geom_line(aes_string(x='week', 
 								   y=type, 
 								   colour='KfctID'),
 						size = 2)
 	g <- g + scale_y_log10()
-	if(type=='gi') title <- 'Backward GI (weekly mean)'
-	if(type=='infdur') title <- 'Infectious duration (weekly mean)'
+	
 	g <- g + ggtitle(title)
 	g <- g + scale_color_brewer(palette  = col.palette)
 	plot(g)
 }
 
 
-plot_distribution_mean <- function(dfall, type) {
+plot_distribution_mean <- function(dfall, type, popsize, mc) {
 	
 	if(type=='gi') {
 		xlabel <- 'gi_bck.mean'
@@ -68,12 +72,14 @@ plot_distribution_mean <- function(dfall, type) {
 		title <- "Temporal variation of infectious duration distributions"
 	}
 	
+	title <- paste0(title,'\n PopSize = ',popsize, ' ; nMC = ',mc)
+	
 	dfall$week <- as.factor(dfall$week)
 	
 	g.distrib <- ggplot(dfall) + geom_density(aes_string(x= xlabel, 
 														 colour='week'),
 											  adjust = 2)
-	g.distrib <- g.distrib + facet_wrap(~KfctID)
+	g.distrib <- g.distrib + facet_wrap(~KfctID, scales = 'free_y')
 	g.distrib <- g.distrib + ggtitle(title)
 	g.distrib <- g.distrib + scale_x_log10()
 	# g.distrib <- g.distrib + scale_color_brewer(palette  = col.palette)

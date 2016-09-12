@@ -204,15 +204,15 @@ if(save.to.file) dev.off()
 # Generation intervals:
 
 if(save.to.file) pdf('plot_gi.pdf', width=12, height = 8)
-plot_mean(df = df, type = 'gi')
-plot_distribution_mean(dfall = dfall, type = 'gi')
+plot_mean(df = df, type = 'gi', popsize = pop.size,mc = n.MC)
+plot_distribution_mean(dfall = dfall, type = 'gi', popsize = pop.size,mc = n.MC)
 if(save.to.file) dev.off()
 
 # Infectious duration:
 
 if(save.to.file) pdf('plot_infdur.pdf', width=12, height = 8)
-plot_mean(df = df.infdur, type = 'infdur')
-plot_distribution_mean(dfall = dfall.infdur, type = 'infdur')
+plot_mean(df = df.infdur, type = 'infdur', popsize = pop.size,mc = n.MC)
+plot_distribution_mean(dfall = dfall.infdur, type = 'infdur', popsize = pop.size,mc = n.MC)
 plot_distribution_raw(df.infdur.raw, xmax=60)
 plot_distribution_raw_time(df=df.infdur.raw, xmax=60, time.bucket=10)
 if(save.to.file) dev.off()
