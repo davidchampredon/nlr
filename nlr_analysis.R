@@ -223,7 +223,7 @@ save.image(file = 'simul.RData')
 t1 <- as.numeric(Sys.time())
 
 message(paste('Time elapsed:',round((t1-t0)/60, 2), 'min'))
-
+print(paste('Time elapsed:',round((t1-t0)/60, 2), 'min'))
 
 
 
