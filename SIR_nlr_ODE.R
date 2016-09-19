@@ -7,7 +7,6 @@ SIR_nlr <- function(t, x, parms)
 	I <- x[2]
 	
 	with(as.list(parms),{ 
-	# Note: time was rescaled: tau <- t(gamma+mu)
 	dS <- mu - beta*S*I - mu*S
 	
 	if(K.fct=='one')    dI <- beta*S*I - mu*I - gamma * I
@@ -22,6 +21,9 @@ SIR_nlr <- function(t, x, parms)
 	list(out)
 })
 } 
+
+
+
 
 if(FALSE){
 	
@@ -46,7 +48,7 @@ if(FALSE){
 	dt <- seq(0,horizon,timestep)
 	
 	sim.sir <- as.data.frame(lsoda(inits, dt, SIR_nlr, parms=parms.sir))
-	sim <- as.data.frame(lsoda(inits, dt, SIR_nlr, parms=parms))
+	sim <- as.data.frame(lsoda(c(inits,1), dt, SIR_nlr, parms=parms))
 	
 	### CHECKS 
 	
