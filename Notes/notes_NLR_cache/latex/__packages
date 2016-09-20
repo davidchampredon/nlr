@@ -1,0 +1,9 @@
+base
+nlr
+deSolve
+ggplot2
+plyr
+adaptivetau
+snow
+snowfall
+gridExtra
