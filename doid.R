@@ -12,7 +12,6 @@ doid.ode <- function(t,x, parms){
 		dS <- mu - beta*S*I - mu*S
 		
 		if(K.fct=='exp')    K_I <- exp(-K.prm[1]*I)
-		if(K.fct=='inv')    K_I <- 1.0 / (K.prm[1] + K.prm[2]*I)
 		if(K.fct=='affpow') K_I <- (K.prm[1] + K.prm[2] * I )^(K.prm[3])
 		
 		dI <- beta*S*I - mu*I - gamma * I * K_I
@@ -29,22 +28,22 @@ doid.ode <- function(t,x, parms){
 }
 
 
+# ==== Results =====
 
-horizon  <- 365 * 1
-timestep <- 0.1
+horizon  <- 300 * 1
+timestep <- 0.09
 
 infect.pop <- 0.01
 
-mu    <- 1/(80*365)
-gamma <- 1/7
-
-R0    <- 4.0
+mu    <- 1/(999*365)
+gamma <- 1/4
+R0    <- 2.0
 
 eps  <- mu/(gamma+mu)
 beta <- R0*(gamma+mu)
 
 K.fct <- 'affpow'
-K.prm <- c(0.1, 1, 0.5)
+K.prm <- c(0.1, 1, 1)
 
 
 parms.sir <- list( mu=mu, gamma=gamma, beta=beta, K.fct = 'one' )
@@ -90,21 +89,22 @@ calc.doid <- function(alpha, inits, dt, parms, tt.max) {
 }
 
 
-alpha.vec <- seq(1,100, by = 10)
+# alpha.vec <- seq(1,250, by = 10)
+alpha.vec <-2^seq(0,8,by=0.5)
 res <- list()
 
 for(i in seq_along(alpha.vec)){
-	print(paste(i/length(alpha.vec)*100,'%'))
+	print(paste(round(i/length(alpha.vec)*100),'%'))
 	res[[i]] <- calc.doid(alpha = alpha.vec[i], 
 						  inits=inits2, dt=dt, parms=parms,
-						  tt.max = 60)
+						  tt.max = 100)
 }
 
 sim <- res[[1]]$sim
 
 ### ===== PLOTS ====
 
-par(mfrow=c(2,2))
+par(mfrow=c(2,3))
 
 ### Phase plot
 
@@ -147,6 +147,14 @@ lines(sim.sir$time,sim.sir$I, lty=2)
 grid()
 
 
+mx <- -99
+
+doid.mean.plot <- numeric(length(res))
+for(i in seq_along(res)){
+	doid.mean.plot[i] <- res[[i]]$doid.mean
+	mx <- max(mx,res[[i]]$doid.mean,res[[i]]$doid.sir.mean) 
+}
+
 for(i in seq_along(res)){
 	
 	n <- length(res)
@@ -157,21 +165,24 @@ for(i in seq_along(res)){
 	zz         <- res[[i]]$doid.sir
 	zz.mean    <- res[[i]]$doid.sir.mean
 	
-	col.sir <- 'grey'
-	col.nlr <- rgb(0,0,1,i/n)
+	col.sir <- 'gold'
+	col.nlr <- rgb(0.2,0,1,i/n)
 	if(i==1){
 		plot(tt, doid, 
-			 main = paste('Duration of infectiousness Distribution at',res[[1]]$alpha,'-',res[[n]]$alpha,'days'),
+			 main = paste('DOI Distribution at',
+			 			 res[[1]]$alpha,'-',res[[n]]$alpha,'days'),
 			 typ='l', 
-			 ylab = '', xlab = 'Time since disease acquisition',
+			 ylab = '', 
+			 xlab = 'Time since disease acquisition',
+			 xlim = range(tt,mx),
 			 log = 'y',
 			 las = 1,
 			 yaxt = 'n',
 			 col = col.nlr,
 			 lwd=3)
 		abline(v = doid.mean, col=col.nlr, lwd = 2, lty=2)
-		lines(tt , zz, col=col.sir, lty=2)
-		abline(v = zz.mean, col=col.sir, lty=2)
+		lines(tt , zz, col=col.sir, lty=3)
+		abline(v = zz.mean, col=col.sir, lty=3)
 		grid()
 	}
 	if(i>1){
@@ -183,7 +194,13 @@ for(i in seq_along(res)){
 	
 }
 
-
-
+plot(x = alpha.vec, 
+	 y = doid.mean.plot,
+	 main = 'Mean DOI',
+	 pch = 16,
+	 xlab = 'Time (alpha)',
+	 ylab = 'mean DOI',
+	 typ='o')
+grid()
 
 
