@@ -39,7 +39,6 @@ calc.doid <- function(alpha, inits, dt, parms, tt.max) {
 	sim <- as.data.frame(lsoda(inits, dt, doid.ode,  
 							   parms = append(parms,tmp)) )
 	
-	
 	idx <- which(dt>= alpha)
 	tt0 <- dt[idx] - dt[idx[1]]
 	doid <- sim$U[idx]
@@ -78,11 +77,11 @@ simul.one <- function(classic.prm, K.fct, K.prm) {
 	mu <- classic.prm$mu          
 	gamma <- classic.prm$gamma    
 	R0 <- classic.prm$R0          
-
+	
 	eps  <- mu/(gamma+mu)
 	beta <- R0*(gamma+mu)
 	dt <- seq(timestep,horizon,timestep)
-
+	
 	parms.sir <- list( mu=mu, gamma=gamma, beta=beta, K.fct = 'one' )
 	parms     <- list( mu=mu, gamma=gamma, beta=beta, K.fct = K.fct, K.prm = K.prm)
 	inits  <- c( S = (1-infect.pop), I =infect.pop  )
@@ -110,7 +109,90 @@ simul.one <- function(classic.prm, K.fct, K.prm) {
 }
 
 
-# ==== Results =====
+### Time series
+
+plot.ts <- function(sim, sim.sir, K.fct, K.prm){
+	u <- paste(c('a','b','c'),K.prm,sep='=',collapse = ' ; ')
+	
+	plot(sim$time,sim$I, 
+		 type="l", col="red", 
+		 lwd=5,
+		 main = paste0("K = ",K.fct,'\n',u),
+		 ylim = pmax(1e-9,range(sim$I, sim.sir$I)),
+		 xlab="Time", ylab="Proportion of infectious",
+		 cex=2,
+		 log = 'y')
+	lines(sim.sir$time, sim.sir$I, lty=2, col='grey')
+	grid()
+}
+
+
+
+pot.doid.alpha <- function(res){
+	
+	mx <- -99
+	for(i in seq_along(res)){
+		mx <- max(mx,res[[i]]$doid.mean,res[[i]]$doid.sir.mean) 
+	}
+	
+	for(i in seq_along(res)){
+		n <- length(res)
+		tt         <- res[[i]]$tsa
+		doid       <- res[[i]]$doid
+		doid.mean  <- res[[i]]$doid.mean
+		alpha      <- res[[i]]$alpha
+		zz         <- res[[i]]$doid.sir
+		zz.mean    <- res[[i]]$doid.sir.mean
+		
+		col.sir <- 'gold'
+		col.nlr <- rgb(0, 0, 1-i/n, i/n)
+		if(i==1){
+			plot(tt, doid, 
+				 main = paste('DOI Distribution (log-scale) at \n day',
+				 			 res[[1]]$alpha,'(lightest) to day',res[[n]]$alpha,'(darkest)'),
+				 typ='l', 
+				 ylab = '', 
+				 xlab = 'Time since disease acquisition',
+				 xlim = range(tt,mx),
+				 log = 'y',
+				 las = 1,
+				 yaxt = 'n',
+				 col = col.nlr,
+				 lwd =2)
+			# abline(v = doid.mean, col=col.nlr, lwd = 2, lty=2)
+			lines(tt , zz, col=col.sir, lty=3)
+			# abline(v = zz.mean, col=col.sir, lty=3)
+			grid()
+		}
+		if(i>1){
+			lines(tt, doid, 
+				  col = col.nlr,
+				  lwd = 3)
+			# abline(v = doid.mean, col=col.nlr, lwd = 2, lty=2)
+		}
+		
+	}
+}
+
+
+plot.doid.mean <-function(res,alpha.vec){
+	doid.mean.plot <- numeric(length(res))
+	for(i in seq_along(res)){
+		doid.mean.plot[i] <- res[[i]]$doid.mean
+	}
+	
+	plot(x = alpha.vec, 
+		 y = doid.mean.plot,
+		 main = 'Mean DOI',
+		 pch = 16,
+		 xlab = 'Time (alpha)',
+		 ylab = 'mean DOI',
+		 typ='o')
+	grid()
+}
+
+
+# ==== Parameters =====
 
 classic.prm <- list()
 classic.prm[['horizon']]     <- 300 * 1
@@ -120,117 +202,47 @@ classic.prm[['mu']]          <- 1/(999*365)
 classic.prm[['gamma']]       <- 1/4
 classic.prm[['R0']]          <- 2.0
 
-K.fct <- 'affpow'
-K.prm <- c(0.1, 1, 1)
 
-Z <- simul.one(classic.prm, K.fct, K.prm)
+K.fct  <- 'affpow'
+powvec <- c(0, 0.5, 1, 2, 1, 1,-1)
+a      <- c(0, 0,   0, 0, 1, 1, 1)
+b      <- c(1, 1,   1, 1, 1,-1, 2)
 
-res <- Z$res
-sim <- res[[1]]$sim
-sim.sir <- Z$sim.sir
-alpha.vec <- Z$alpha.vec
-
-
-
-### ===== PLOTS ====
-
-par(mfrow=c(2,3))
-
-### Phase plot
-
-plot(x = sim$S,
-	 y = sim$I,
-	 main = paste0("K(I) = ",K.fct),
-	 xlim = range(sim$S,sim.sir$S),
-	 ylim = range(sim$I,sim.sir$I),
-	 lwd = 2, col='red',
-	 xlab="Susceptibles", ylab="Infected",
-	 typ="l", log='xy')
-
-lines(x = sim.sir$S,
-	  y =  sim.sir$I,
-	  lwd = 1, lty=2)
-grid()
-
-
-### Time series
-
-plot(sim$time,sim$I, 
-	 type="l", col="red", 
-	 lwd=5,
-	 main = paste0("K(I) = ",K.fct),
-	 ylim = range(sim$I, sim.sir$I),
-	 xlab="Time", ylab="Proportion of infectious",
-	 cex=2)
-lines(sim.sir$time,sim.sir$I, lty=2)
-grid()
-
-plot(sim$time,sim$I, 
-	 type="l", col="red", 
-	 lwd=5,
-	 main = paste0("K(I) = ",K.fct),
-	 ylim = range(sim$I, sim.sir$I),
-	 xlab="Time", ylab="Proportion of infectious",
-	 cex=2,
-	 log = 'y')
-lines(sim.sir$time,sim.sir$I, lty=2)
-grid()
-
-
-mx <- -99
-
-doid.mean.plot <- numeric(length(res))
-for(i in seq_along(res)){
-	doid.mean.plot[i] <- res[[i]]$doid.mean
-	mx <- max(mx,res[[i]]$doid.mean,res[[i]]$doid.sir.mean) 
+K <-list()
+for(q in seq_along(a)){
+	K[[q]] <- list(K.fct, c(a[q], b[q], powvec[q]))
 }
 
-for(i in seq_along(res)){
-	
-	n <- length(res)
-	tt         <- res[[i]]$tsa
-	doid       <- res[[i]]$doid
-	doid.mean  <- res[[i]]$doid.mean
-	alpha      <- res[[i]]$alpha
-	zz         <- res[[i]]$doid.sir
-	zz.mean    <- res[[i]]$doid.sir.mean
-	
-	col.sir <- 'gold'
-	col.nlr <- rgb(0.2,0,1,i/n)
-	if(i==1){
-		plot(tt, doid, 
-			 main = paste('DOI Distribution at',
-			 			 res[[1]]$alpha,'-',res[[n]]$alpha,'days'),
-			 typ='l', 
-			 ylab = '', 
-			 xlab = 'Time since disease acquisition',
-			 xlim = range(tt,mx),
-			 log = 'y',
-			 las = 1,
-			 yaxt = 'n',
-			 col = col.nlr,
-			 lwd=3)
-		abline(v = doid.mean, col=col.nlr, lwd = 2, lty=2)
-		lines(tt , zz, col=col.sir, lty=3)
-		abline(v = zz.mean, col=col.sir, lty=3)
-		grid()
-	}
-	if(i>1){
-		lines(tt, doid, 
-			  col = col.nlr,
-			  lwd = 3)
-		abline(v = doid.mean, col=col.nlr, lwd = 2, lty=2)
-	}
-	
-}
 
-plot(x = alpha.vec, 
-	 y = doid.mean.plot,
-	 main = 'Mean DOI',
-	 pch = 16,
-	 xlab = 'Time (alpha)',
-	 ylab = 'mean DOI',
-	 typ='o')
-grid()
+### ===== Results & Plots ====
+
+t0<- as.numeric(Sys.time())
+
+save.plot.file <- TRUE
+if(save.plot.file) pdf('plot_doid.pdf', height = 20, width = 15)
+
+par(mfrow=c(length(K),3))
+Z <- list()
+for(i in seq_along(K)){
+	print(paste(i,'/',length(K)))
+	K.fct <- K[[i]][[1]]
+	K.prm <- K[[i]][[2]]
+	Z[[i]] <- simul.one(classic.prm, K.fct, K.prm)	
+	res       <- Z[[i]]$res
+	sim       <- res[[1]]$sim
+	sim.sir   <- Z[[i]]$sim.sir
+	alpha.vec <- Z[[i]]$alpha.vec
+	
+	plot.ts(sim, sim.sir, K.fct, K.prm)
+	pot.doid.alpha(res)
+	plot.doid.mean(res,alpha.vec)
+}
+if(save.plot.file) dev.off()
+
+t1<- as.numeric(Sys.time())
+
+print(paste('Time elapsed:',round((t1-t0)/60,1),'min'))
+
+
 
 
