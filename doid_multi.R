@@ -111,7 +111,7 @@ simul.one <- function(classic.prm, K.fct, K.prm) {
 
 ### Time series
 
-plot.ts <- function(sim, sim.sir, K.fct, K.prm){
+plot.ts <- function(sim, sim.sir, K.fct, K.prm, log.plot='y'){
 	u <- paste(c('a','b','c'),K.prm,sep='=',collapse = ' ; ')
 	
 	plot(sim$time,sim$I, 
@@ -121,14 +121,14 @@ plot.ts <- function(sim, sim.sir, K.fct, K.prm){
 		 ylim = pmax(1e-9,range(sim$I, sim.sir$I)),
 		 xlab="Time", ylab="Proportion of infectious",
 		 cex=2,
-		 log = 'y')
+		 log = log.plot)
 	lines(sim.sir$time, sim.sir$I, lty=2, col='grey')
 	grid()
 }
 
 
 
-pot.doid.alpha <- function(res){
+pot.doid.alpha <- function(res,log.plot='y'){
 	
 	mx <- -99
 	for(i in seq_along(res)){
@@ -154,9 +154,9 @@ pot.doid.alpha <- function(res){
 				 ylab = '', 
 				 xlab = 'Time since disease acquisition',
 				 xlim = range(tt,mx),
-				 log = 'y',
+				 log = log.plot,
 				 las = 1,
-				 yaxt = 'n',
+				 #yaxt = 'n',
 				 col = col.nlr,
 				 lwd =2)
 			# abline(v = doid.mean, col=col.nlr, lwd = 2, lty=2)
@@ -233,8 +233,8 @@ for(i in seq_along(K)){
 	sim.sir   <- Z[[i]]$sim.sir
 	alpha.vec <- Z[[i]]$alpha.vec
 	
-	plot.ts(sim, sim.sir, K.fct, K.prm)
-	pot.doid.alpha(res)
+	plot.ts(sim, sim.sir, K.fct, K.prm, log.plot='')
+	pot.doid.alpha(res, log.plot='')
 	plot.doid.mean(res,alpha.vec)
 }
 if(save.plot.file) dev.off()
