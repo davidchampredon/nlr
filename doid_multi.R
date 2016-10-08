@@ -170,7 +170,6 @@ pot.doid.alpha <- function(res,log.plot='y'){
 				  lwd = 3)
 			# abline(v = doid.mean, col=col.nlr, lwd = 2, lty=2)
 		}
-		
 	}
 }
 
@@ -197,7 +196,7 @@ plot.doid.mean <-function(res,alpha.vec){
 classic.prm <- list()
 classic.prm[['horizon']]     <- 300 * 1
 classic.prm[['timestep']]    <- 0.09
-classic.prm[['infect.pop']]  <- 0.01
+classic.prm[['infect.pop']]  <- 1e-5
 classic.prm[['mu']]          <- 1/(999*365)
 classic.prm[['gamma']]       <- 1/4
 classic.prm[['R0']]          <- 2.0
