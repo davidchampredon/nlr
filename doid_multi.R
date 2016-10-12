@@ -17,6 +17,8 @@ doid.ode <- function(t,x, parms){
 		
 		dI <- beta*S*I - mu*I - gamma * I * K_I
 		
+		# '1-U' is the _cumulative_ distribution
+		# of the infectious period:
 		if(t <= alpha) {
 			dU = 0
 		}
@@ -34,32 +36,41 @@ calc.doid <- function(alpha, inits, dt, parms, tt.max) {
 	# Solve for the DOI distribution
 	# using ODEs from the cohort model.
 	
-	tmp <- c(alpha = alpha)
+	tmp   <- c(alpha = alpha)
 	gamma <- parms[['gamma']]
-	sim <- as.data.frame(lsoda(inits, dt, doid.ode,  
-							   parms = append(parms,tmp)) )
+	sim   <- as.data.frame(lsoda(inits, dt, doid.ode,  
+								 parms = append(parms,tmp)) )
 	
 	idx <- which(dt>= alpha)
 	tt0 <- dt[idx] - dt[idx[1]]
-	doid <- sim$U[idx]
+	# (1-U) is the cumulative distribution of 
+	# the infectious period, so the _density_
+	# is its derivative (negative):
+	U <- sim$U[idx]
+	# derivative:
+	deltat <- dt[2]-dt[1]
+	doid   <- - diff(U)/deltat
+	# normalize:
 	doid <- doid/sum(doid)
 	
-	zz <- exp(-tt0 * gamma)
-	zz <- zz / sum(zz)
+	# check with simple SIR:	
+	doid.sir <- exp(-tt0 * gamma)
+	doid.sir <- doid.sir / sum(doid.sir)
 	
-	doid.mean <- sum(tt0 * doid )
-	zz.mean   <- sum(tt0 * zz)
+	tt0.m <- tt0[1:length(doid)]
+	doid.mean     <- sum(tt0.m * doid )
+	doid.sir.mean <- sum(tt0 * doid.sir)
 	
-	tt     <- tt0[tt0<tt.max]
-	doid   <- doid[tt0<tt.max]
-	zz     <- zz[tt0<tt.max]
+	tt        <- tt0[tt0<tt.max]
+	doid      <- doid[tt0<tt.max]
+	doid.sir  <- doid.sir[tt0<tt.max]
 	
 	return(list(alpha = alpha, 
 				sim   = sim, 
 				doid  = doid, 
 				doid.mean = doid.mean,
-				doid.sir = zz,
-				doid.sir.mean = zz.mean,
+				doid.sir = doid.sir,
+				doid.sir.mean = doid.sir.mean,
 				tsa   = tt ))
 }
 
@@ -203,9 +214,9 @@ classic.prm[['R0']]          <- 2.0
 
 
 K.fct  <- 'affpow'
-powvec <- c(0, 0.5, 1, 2, 1, 1,-1)
-a      <- c(0, 0,   0, 0, 1, 1, 1)
-b      <- c(1, 1,   1, 1, 1,-1, 2)
+powvec <- c(1, 0.5, 1, 2, 1, 1,-1)
+a      <- c(1, 0,   0, 0, 1, 1, 1)
+b      <- c(0, 1,   1, 1, 1,-1, 2)
 
 K <-list()
 for(q in seq_along(a)){

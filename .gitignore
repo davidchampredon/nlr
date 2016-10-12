@@ -14,3 +14,5 @@ notes_NLR_files/*
 *.log
 
 plot_doid.pdf
+
+*.pdf

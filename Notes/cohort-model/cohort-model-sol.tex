@@ -51,13 +51,13 @@ and for convenience, let's introduce $p$ as
 $$p_\alpha(t) = c_\alpha(t-\alpha)$$
 
 
-The duration of infectiousness distribution conditional on disease acquisition at time $\alpha$, $p_\alpha$, can be determined numerically by solving the following system:
+The function $1-p_\alpha$ is the cumulative distribution of duration of infectiousness conditional on disease acquisition at time $\alpha$. It can be determined numerically by solving the following system:
 \begin{eqnarray}
 S' & = & \mu S - \beta SI \\
 I' & = & \beta S I - \gamma I \K(I)\\ 
 p_\alpha' & = & - \gamma p_\alpha\, \K(I) \label{eq:p_alpha}
 \end{eqnarray}
-with the initial conditions $I(0) = i_0$, $S(0)=1-i_0$ and $p_\alpha(\alpha)=1$. Note that $p_\alpha$ is not epidemiologically defined for $t<\alpha$, but it is nonetheless possible to arbitrary set $p_\alpha(t)=1$ for $t\leq \alpha$.
+with the initial conditions $I(0) = i_0$, $S(0)=1-i_0$ and $p_\alpha(\alpha)=1$. Note that $p_\alpha$ is not epidemiologically defined for $t<\alpha$, but it is nonetheless possible to arbitrary set $p_\alpha(t)=1$ for $t\leq \alpha$. Moreover, the density of the infectiousness duration is given by the derivative $-p_\alpha'$.
 
 \section{Numerical solutions}
 
@@ -67,12 +67,12 @@ Figure \ref{fig:results} show the resulting distribution $p_\alpha$ for several 
 \begin{itemize}
 \item $R_0 = 2.0$
 \item $\gamma = 1/4$
-\item $K(I) = (a+bI)^c$
+\item $\K(I) = (a+bI)^c$
 \end{itemize}
 
 The top panel is effectively a SIR model and we can verify that the distribution $p_\alpha$ is indeed an invariable exponential distribution (top centre panel, straight line on the log-scale) with a constant mean at $1/\gamma = 4$ days (top right panel).
 
-Considering the second, third and fourth rows that depict $K(I)=I^c$ with $c=0.5,1,2$ respectively, the centre panel confirms the convergence towards an exponential distribution (straight line on the log-scale) at equilibrium. Moreover, when using $K(I)=I^c$ with $c>0$, the per-capita recovery rate is dramatically reduced (equation \eqref{eq:dIcapita}), increasing the length of the recovery: this is illustrated in the right panels, where the mean is very large as $c$ increases. 
+Considering the second, third and fourth rows that depict $\K(I)=I^c$ with $c=0.5,1,2$ respectively, the centre panel confirms the convergence towards an exponential distribution (straight line on the log-scale) at equilibrium. Moreover, when using $\K(I)=I^c$ with $c>0$, the per-capita recovery rate is dramatically reduced (equation \eqref{eq:dIcapita}), increasing the length of the recovery: this is illustrated in the right panels, where the mean is very large as $c$ increases. 
 
 
 \onecolumn
