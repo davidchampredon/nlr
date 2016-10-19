@@ -1,0 +1,4 @@
+- include K(I) in the incidence term too. DONE, Weird
+- a/b <<1   DONE, OK
+- a>1, b=-1  DONE, fails bc Inf val
+- confusion density/cum distrib  DONE.

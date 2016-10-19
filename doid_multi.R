@@ -10,12 +10,15 @@ doid.ode <- function(t,x, parms){
 	U <- x[3]
 	
 	with(as.list(parms),{ 
-		dS <- mu - beta*S*I - mu*S
 		
 		if(K.fct=='exp')    K_I <- exp(-K.prm[1]*I)
 		if(K.fct=='affpow') K_I <- (K.prm[1] + K.prm[2] * I )^(K.prm[3])
 		
-		dI <- beta*S*I - mu*I - gamma * I * K_I
+		if(incK) inc <- beta*S*I*K_I
+		else inc <- beta*S*I
+		
+		dS <- mu - inc - mu*S
+		dI <- inc - mu*I - gamma * I * K_I
 		
 		# '1-U' is the _cumulative_ distribution
 		# of the infectious period:
@@ -78,7 +81,7 @@ calc.doid <- function(alpha, inits, dt, parms, tt.max) {
 
 
 
-simul.one <- function(classic.prm, K.fct, K.prm) {
+simul.one <- function(classic.prm, K.fct, K.prm, incK) {
 	
 	# Parameters set-up:
 	
@@ -93,8 +96,11 @@ simul.one <- function(classic.prm, K.fct, K.prm) {
 	beta <- R0*(gamma+mu)
 	dt <- seq(timestep,horizon,timestep)
 	
-	parms.sir <- list( mu=mu, gamma=gamma, beta=beta, K.fct = 'one' )
-	parms     <- list( mu=mu, gamma=gamma, beta=beta, K.fct = K.fct, K.prm = K.prm)
+	parms.sir <- list( mu=mu, gamma=gamma, beta=beta,
+					   K.fct = 'one' , incK = FALSE)
+	parms     <- list( mu=mu, gamma=gamma, beta=beta, 
+					   K.fct = K.fct, K.prm = K.prm,
+					   incK = incK)
 	inits  <- c( S = (1-infect.pop), I =infect.pop  )
 	inits2 <- c( S = (1-infect.pop), I =infect.pop , U = 1.00 )
 	
@@ -206,17 +212,18 @@ plot.doid.mean <-function(res,alpha.vec){
 
 classic.prm <- list()
 classic.prm[['horizon']]     <- 300 * 1
-classic.prm[['timestep']]    <- 0.09
+classic.prm[['timestep']]    <- 0.25
 classic.prm[['infect.pop']]  <- 1e-5
 classic.prm[['mu']]          <- 1/(999*365)
 classic.prm[['gamma']]       <- 1/4
 classic.prm[['R0']]          <- 2.0
 
+incK <- FALSE
 
 K.fct  <- 'affpow'
 powvec <- c(1, 0.5, 1, 2, 1, 1,-1)
-a      <- c(1, 0,   0, 0, 1, 1, 1)
-b      <- c(0, 1,   1, 1, 1,-1, 2)
+a      <- c(1, 0,   0, 0, 1, 1, 1, 1.0001)
+b      <- c(0, 1,   1, 1, 1,-1, 9,-1)
 
 K <-list()
 for(q in seq_along(a)){
@@ -237,15 +244,15 @@ for(i in seq_along(K)){
 	print(paste(i,'/',length(K)))
 	K.fct <- K[[i]][[1]]
 	K.prm <- K[[i]][[2]]
-	Z[[i]] <- simul.one(classic.prm, K.fct, K.prm)	
+	Z[[i]] <- simul.one(classic.prm, K.fct, K.prm, incK)	
 	res       <- Z[[i]]$res
 	sim       <- res[[1]]$sim
 	sim.sir   <- Z[[i]]$sim.sir
 	alpha.vec <- Z[[i]]$alpha.vec
 	
-	plot.ts(sim, sim.sir, K.fct, K.prm, log.plot='')
-	pot.doid.alpha(res, log.plot='')
-	plot.doid.mean(res,alpha.vec)
+	try(plot.ts(sim, sim.sir, K.fct, K.prm, log.plot=''), silent = T)
+	try(pot.doid.alpha(res, log.plot=''), silent = T)
+	try(plot.doid.mean(res,alpha.vec), silent = T)
 }
 if(save.plot.file) dev.off()
 
